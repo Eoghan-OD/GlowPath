@@ -1,0 +1,5 @@
+GlowPath is a health and fitness web application created for our Agile project. It is designed to help users track workouts, view progress, and receive simple insights that encourage consistent activity. The goal is to build a lightweight and user friendly fitness tracker that focuses on essential features rather than unnecessary extras found in many existing apps.
+
+Our Agile project uses the Scrum framework and is divided into three sprints. Sprint 1 focuses on building the data input system, allowing users to manually enter workouts or upload a CSV file. Sprint 2 focuses on displaying the data in clear charts and tables so users can easily track their progress. Sprint 3 focuses on generating insights and summaries based on user activity to help maintain motivation.
+
+GlowPath uses a simplified version of the Fitbit Fitness Tracker dataset, which includes details such as date, activity type, duration, steps, and calories. By the end of development, GlowPath will deliver a functional, visually clear, and easy to use fitness tracker supported by complete Agile documentation and team reports.
