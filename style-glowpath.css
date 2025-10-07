@@ -1,102 +1,105 @@
-/* GlowPath Theme: Green (#2ecc71) and Purple (#7d3cff) */
+/* Main theme colours: Green (#2ecc71) and Purple (#7d3cff) */
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #f3f0ff, #e8fff0);
+  font-family: 'Segoe UI', sans-serif; /* Clean, modern font */
+  background: linear-gradient(135deg, #f3f0ff, #e8fff0); /* Soft background gradient */
   margin: 0;
   padding: 0;
-  color: #333;
+  color: #333; /* Standard readable text colour */
 }
 
-/* Header */
+/* Header styling */
 .glowpath-header {
-  background: linear-gradient(90deg, #7d3cff, #2ecc71);
+  background: linear-gradient(90deg, #7d3cff, #2ecc71); /* Green and purple blend */
   color: white;
   text-align: center;
-  padding: 3em 1em 2em;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  padding: 3em 1em 2em; /* Adds space around the header */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Soft drop shadow */
 }
 
 .glowpath-logo {
-  width: 160px;
+  width: 160px; /* Logo size */
   height: auto;
-  margin-bottom: 1em;
+  margin-bottom: 1em; /* Space below logo */
 }
 
-/* Navigation */
+/* Navigation bar styling */
 .glowpath-nav {
-  background-color: #6a2edb;
+  background-color: #6a2edb; /* Purple nav background */
   display: flex;
   justify-content: center;
   padding: 0.8em;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* Wrap links on smaller screens */
 }
 
 .glowpath-nav a {
   color: white;
   text-decoration: none;
-  margin: 0.5em 1em;
+  margin: 0.5em 1em; /* Even spacing between links */
   font-weight: bold;
-  transition: color 0.2s;
+  transition: color 0.2s; /* Smooth hover transition */
 }
 
 .glowpath-nav a:hover,
 .glowpath-nav .active {
-  color: #a8ffbf;
+  color: #a8ffbf; /* Light green when hovered or active */
   text-decoration: underline;
 }
 
-/* Main Content */
+/* Main container for all page content */
 .glowpath-main {
   max-width: 1000px;
-  margin: 2em auto;
+  margin: 2em auto; /* Centers the content */
   background: white;
   padding: 2em;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 12px; /* Rounded edges */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft shadow */
 }
 
+/* Spacing between sections */
 .glowpath-section {
   margin-bottom: 2em;
 }
 
+/* Section headers */
 .glowpath-section h2 {
-  color: #7d3cff;
-  border-bottom: 3px solid #2ecc71;
+  color: #7d3cff; /* Purple heading */
+  border-bottom: 3px solid #2ecc71; /* Green underline */
   padding-bottom: 0.4em;
 }
 
-/* Team Section */
+/* Team grid layout */
 .glowpath-team {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 2em;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Responsive grid */
+  gap: 2em; /* Space between cards */
   margin-top: 2em;
 }
 
+/* Individual team member cards */
 .team-member {
   text-align: center;
-  background: #f8f9ff;
+  background: #f8f9ff; /* Light background for contrast */
   padding: 1.5em;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
+  transition: transform 0.3s; /* Smooth hover lift */
 }
 
 .team-member:hover {
-  transform: translateY(-5px);
+  transform: translateY(-5px); /* Card lifts slightly when hovered */
 }
 
 .team-member img {
   width: 120px;
   height: 120px;
-  border-radius: 50%;
+  border-radius: 50%; /* Circular images */
   object-fit: cover;
   margin-bottom: 1em;
-  border: 3px solid #2ecc71;
+  border: 3px solid #2ecc71; /* Green outline around photo */
 }
 
 .team-member h3 {
-  color: #7d3cff;
+  color: #7d3cff; /* Purple name */
   margin-bottom: 0.3em;
 }
 
@@ -105,37 +108,37 @@ body {
   line-height: 1.5;
 }
 
-/* Lists */
+/* Custom styled list items */
 .glowpath-list {
-  list-style: none;
+  list-style: none; /* Removes default bullets */
   padding-left: 0;
 }
 
 .glowpath-list li {
   background: #f7f7ff;
-  border-left: 4px solid #2ecc71;
+  border-left: 4px solid #2ecc71; /* Green left border */
   margin: 0.5em 0;
   padding: 0.8em;
   border-radius: 6px;
 }
 
-/* Buttons */
+/* Button design */
 .glowpath-button {
   display: inline-block;
-  background-color: #2ecc71;
+  background-color: #2ecc71; /* Green button */
   color: white;
   text-decoration: none;
   padding: 0.9em 1.5em;
   border-radius: 8px;
   font-weight: bold;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease; /* Smooth hover */
 }
 
 .glowpath-button:hover {
-  background-color: #28b862;
+  background-color: #28b862; /* Slightly darker green when hovered */
 }
 
-/* Footer */
+/* Footer styling */
 .glowpath-footer {
   text-align: center;
   padding: 1.2em;
@@ -145,7 +148,7 @@ body {
   font-weight: 500;
 }
 
-/* Responsive */
+/* Adjust layout for mobile devices */
 @media (max-width: 600px) {
   .glowpath-main {
     margin: 1em;
@@ -153,10 +156,10 @@ body {
   }
 
   .glowpath-logo {
-    width: 120px;
+    width: 120px; /* Smaller logo on phones */
   }
 
   .glowpath-nav {
-    flex-direction: column;
+    flex-direction: column; /* Stack links vertically */
   }
 }
