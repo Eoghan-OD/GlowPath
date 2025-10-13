@@ -1,113 +1,184 @@
-// Selects key elements from the HTML
-const form = document.getElementById('glowpath-form');
-const message = document.getElementById('glowpath-message');
-const tableBody = document.querySelector('#workoutTable tbody');
-const csvInput = document.getElementById('csvFileInput');
-const uploadBtn = document.getElementById('uploadBtn');
+// ===== GlowPath Script (enhanced) =====
 
-// Load stored workouts when the page opens
-window.addEventListener('load', loadWorkouts);
+// --- Helpers ---
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-// When the form is submitted, save the workout data
-form.addEventListener('submit', (e) => {
-  e.preventDefault(); // Prevents page reload
+const STORAGE_KEY = 'glowpath_workouts';
 
-  // Get form values
-  const activity = document.getElementById('activity').value;
-  const duration = document.getElementById('duration').value;
-  const calories = document.getElementById('calories').value;
-  const steps = document.getElementById('steps').value || '—'; // optional field
+// Load workouts from localStorage
+function loadWorkouts() {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    console.warn('Failed to parse saved workouts.', e);
+    return [];
+  }
+}
 
-  // Create a workout entry object
-  const workout = {
-    date: new Date().toLocaleDateString(),
-    activity,
-    duration,
-    calories,
-    steps,
+// Save workouts to localStorage
+function saveWorkouts(list) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+// Format today as YYYY-MM-DD
+function todayISO() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+// Render workouts table
+function renderTable(workouts) {
+  const tbody = $('#workoutTable tbody');
+  tbody.innerHTML = '';
+  workouts.forEach((w) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${w.date || ''}</td>
+      <td>${w.activity || ''}</td>
+      <td>${Number(w.duration || 0)}</td>
+      <td>${Number(w.calories || 0)}</td>
+      <td>${w.steps !== undefined && w.steps !== null && w.steps !== '' ? Number(w.steps) : ''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Update summary metrics
+function updateSummary(workouts) {
+  const totalWorkouts = workouts.length;
+  const totalDuration = workouts.reduce((s, w) => s + Number(w.duration || 0), 0);
+  const totalCalories = workouts.reduce((s, w) => s + Number(w.calories || 0), 0);
+  const avgDuration = totalWorkouts ? Math.round((totalDuration / totalWorkouts) * 10) / 10 : 0;
+
+  $('#total-workouts').textContent = totalWorkouts;
+  $('#total-duration').textContent = totalDuration;
+  $('#total-calories').textContent = totalCalories;
+  $('#avg-duration').textContent = avgDuration;
+}
+
+// Basic CSV parser (comma-separated, with a header row expected)
+function parseCSV(text) {
+  // Normalize newlines and split
+  const lines = text.replace(/\r/g, '').trim().split('\n').filter(Boolean);
+  if (lines.length === 0) return [];
+
+  // Detect header
+  const header = lines[0].split(',').map((h) => h.trim().toLowerCase());
+  const idx = {
+    date: header.findIndex(h => /date/i.test(h)),
+    activity: header.findIndex(h => /activity/i.test(h)),
+    duration: header.findIndex(h => /duration/i.test(h)),
+    calories: header.findIndex(h => /cal/i.test(h)),
+    steps: header.findIndex(h => /step/i.test(h)),
   };
 
-  // Save the workout to local storage
-  saveWorkout(workout);
-
-  // Update the table with the new entry
-  addWorkoutToTable(workout);
-
-  // Display a quick success message
-  message.textContent = 'Workout saved!';
-  message.style.color = 'green';
-
-  // Clear form fields
-  form.reset();
-});
-
-// Save a workout entry into localStorage
-function saveWorkout(workout) {
-  const workouts = JSON.parse(localStorage.getItem('workouts')) || [];
-  workouts.push(workout);
-  localStorage.setItem('workouts', JSON.stringify(workouts));
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map((c) => c.trim());
+    const entry = {
+      date: idx.date >= 0 ? cols[idx.date] : todayISO(),
+      activity: idx.activity >= 0 ? cols[idx.activity] : 'Unknown',
+      duration: idx.duration >= 0 ? Number(cols[idx.duration] || 0) : 0,
+      calories: idx.calories >= 0 ? Number(cols[idx.calories] || 0) : 0,
+      steps: idx.steps >= 0 ? Number(cols[idx.steps] || 0) : '',
+    };
+    rows.push(entry);
+  }
+  return rows;
 }
 
-// Load all workouts from storage and show them in the table
-function loadWorkouts() {
-  const workouts = JSON.parse(localStorage.getItem('workouts')) || [];
-  workouts.forEach(addWorkoutToTable);
+// Back to Top visibility toggle
+function setupBackToTop() {
+  const btn = $('#backToTop');
+  if (!btn) return;
+  window.addEventListener('scroll', () => {
+    btn.style.display = window.scrollY > 300 ? 'block' : 'none';
+  });
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 }
 
-// Add a workout entry into the table
-function addWorkoutToTable(workout) {
-  const row = document.createElement('tr');
-  row.innerHTML = `
-    <td>${workout.date}</td>
-    <td>${workout.activity}</td>
-    <td>${workout.duration}</td>
-    <td>${workout.calories}</td>
-    <td>${workout.steps}</td>
-  `;
-  tableBody.appendChild(row);
-}
+// Initialize page
+document.addEventListener('DOMContentLoaded', () => {
+  const form = $('#glowpath-form');
+  const messageEl = $('#glowpath-message');
+  const fileInput = $('#csvFileInput');
+  const uploadBtn = $('#uploadBtn');
 
-// Handle CSV file upload
-uploadBtn.addEventListener('click', () => {
-  const file = csvInput.files[0];
-  if (!file) {
-    alert('Please select a CSV file first.');
-    return;
+  // Load + render existing data
+  let workouts = loadWorkouts();
+  renderTable(workouts);
+  updateSummary(workouts);
+  setupBackToTop();
+
+  // Handle manual form submissions
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const activity = $('#activity').value.trim();
+      const duration = Number($('#duration').value);
+      const calories = Number($('#calories').value);
+      const stepsRaw = $('#steps').value;
+      const steps = stepsRaw === '' ? '' : Number(stepsRaw);
+
+      if (!activity || !duration || !calories) {
+        messageEl.textContent = 'Please fill in all required fields.';
+        return;
+      }
+
+      const entry = {
+        date: todayISO(),
+        activity,
+        duration,
+        calories,
+        steps
+      };
+
+      workouts.push(entry);
+      saveWorkouts(workouts);
+      renderTable(workouts);
+      updateSummary(workouts);
+
+      form.reset();
+      messageEl.textContent = 'Workout saved!';
+      setTimeout(() => (messageEl.textContent = ''), 2000);
+    });
   }
 
-  const reader = new FileReader();
-
-  // When the file is successfully read
-  reader.onload = function (e) {
-    const text = e.target.result;
-    const data = parseCSV(text);
-
-    // Add each CSV row to the table and save to local storage
-    data.forEach((workout) => {
-      addWorkoutToTable(workout);
-      saveWorkout(workout);
+  // Handle CSV preview/import
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', () => {
+      const file = fileInput && fileInput.files && fileInput.files[0];
+      if (!file) {
+        messageEl.textContent = 'Please choose a CSV file first.';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const rows = parseCSV(ev.target.result);
+          if (!rows.length) {
+            messageEl.textContent = 'No valid rows found in the CSV.';
+            return;
+          }
+          // Append to current workouts
+          workouts = workouts.concat(rows);
+          saveWorkouts(workouts);
+          renderTable(workouts);
+          updateSummary(workouts);
+          messageEl.textContent = `CSV imported: ${rows.length} row(s) added.`;
+          setTimeout(() => (messageEl.textContent = ''), 2500);
+        } catch (err) {
+          console.error(err);
+          messageEl.textContent = 'There was an error reading the CSV.';
+        }
+      };
+      reader.readAsText(file);
     });
-
-    alert('CSV data uploaded successfully!');
-  };
-
-  reader.readAsText(file); // Reads the CSV file as plain text
+  }
 });
-
-// Simple CSV parser that converts text to an array of workout objects
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  const headers = lines[0].split(',');
-
-  // Convert each line (except header) into an object
-  const workouts = lines.slice(1).map((line) => {
-    const values = line.split(',');
-    const entry = {};
-    headers.forEach((header, index) => {
-      entry[header.trim()] = values[index].trim();
-    });
-    return entry;
-  });
-
-  return workouts;
-}

@@ -325,3 +325,54 @@ body {
   -webkit-appearance: none;
   margin: 0;
 }
+
+/* === NEW: Summary panel & Back to Top === */
+#summary-panel .summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.metric-card {
+  background: #f8f9ff;
+  border: 2px solid #f0eaff;
+  border-left: 6px solid #2ecc71;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+}
+.metric-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #6a2edb;
+  margin-bottom: 0.35rem;
+}
+.metric-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #2ecc71;
+}
+
+/* Back to Top button */
+#backToTop {
+  position: fixed;
+  bottom: 22px;
+  right: 26px;
+  background: #7d3cff;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+  display: none;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  line-height: 1;
+}
+#backToTop:hover {
+  background: #2ecc71;
+}
