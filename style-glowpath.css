@@ -163,3 +163,165 @@ body {
     flex-direction: column; /* Stack links vertically */
   }
 }
+
+/* Labels */
+.glowpath-section label,
+#manual-entry label {
+  font-weight: 600;
+  margin-right: 0.4rem;
+  color: #7d3cff; /* purple by default */
+  transition: color 0.2s ease;
+}
+
+/* Hover only when a mouse is present */
+@media (hover: hover) and (pointer: fine) {
+  .glowpath-section label:hover,
+  #manual-entry label:hover {
+    color: #2ecc71; /* green on hover */
+  }
+}
+
+/* Inputs and selects */
+.glowpath-section input,
+.glowpath-section select {
+  appearance: none;
+  border: 2px solid #cfcfcf;
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+  margin: 0.4rem 0.6rem 0.4rem 0;
+  font-size: 0.95rem;
+  background-color: #fff;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Focus */
+.glowpath-section input:focus,
+.glowpath-section select:focus {
+  outline: none;
+  border-color: #7d3cff;
+  box-shadow: 0 0 0 3px rgba(125, 60, 255, 0.2);
+}
+
+/* Placeholder */
+.glowpath-section input::placeholder {
+  color: #999;
+}
+
+/* Select dropdown arrow */
+.glowpath-section select {
+  background-image: linear-gradient(45deg, transparent 50%, #7d3cff 50%),
+                    linear-gradient(135deg, #7d3cff 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(1em + 2px),
+                       calc(100% - 13px) calc(1em + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+/* Buttons */
+.glowpath-section button {
+  background: #7d3cff;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.65rem 1.3rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 14px rgba(125, 60, 255, 0.22);
+}
+
+/* Hover + Active */
+.glowpath-section button:hover {
+  background: #692edb;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(125, 60, 255, 0.25);
+}
+
+.glowpath-section button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(125, 60, 255, 0.15);
+}
+
+/* File input */
+.glowpath-section input[type="file"] {
+  border: 2px dashed #7d3cff;
+  background-color: #f9f5ff;
+  padding: 0.7rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.glowpath-section input[type="file"]:hover {
+  border-color: #2ecc71;
+  background-color: #f3fff6;
+}
+
+/* Feedback message */
+#glowpath-message {
+  color: #7d3cff;
+  font-weight: 600;
+  margin-top: 0.6rem;
+}
+
+/* === Make Manual Workout inputs match the dashed CSV style === */
+#manual-entry .input-group {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  transition: all 0.25s ease;
+}
+
+/* Default label + input style */
+#manual-entry .input-group label {
+  font-weight: 600;
+  color: #7d3cff; /* purple by default */
+  transition: color 0.25s ease;
+}
+
+#manual-entry .input-group input,
+#manual-entry .input-group select {
+  appearance: none;
+  border: 2px dashed #7d3cff; /* purple border by default */
+  background-color: #f9f5ff;  /* light purple background */
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.95rem;
+  color: #333;
+  transition: all 0.25s ease;
+}
+
+/* Hover on group: both label and input turn green */
+#manual-entry .input-group:hover label,
+#manual-entry .input-group:hover input,
+#manual-entry .input-group:hover select {
+  border-color: #2ecc71;
+  background-color: #f3fff6;
+  color: #2ecc71;
+}
+
+/* Focus state: same green highlight */
+#manual-entry .input-group input:focus,
+#manual-entry .input-group select:focus {
+  outline: none;
+  border-color: #2ecc71;
+  background-color: #f3fff6;
+  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.18);
+}
+
+#manual-entry .input-group input::placeholder {
+  color: #888;
+}
+
+/* Remove spin buttons from number fields */
+#manual-entry input[type="number"] {
+  -moz-appearance: textfield;
+}
+#manual-entry input[type="number"]::-webkit-outer-spin-button,
+#manual-entry input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

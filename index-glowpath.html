@@ -35,27 +35,35 @@
       <!-- Form captures user input for workout details -->
       <form id="glowpath-form">
         <!-- Activity type dropdown -->
-        <label for="activity">Activity Type:</label>
-        <select id="activity" name="activity" required>
-          <option value="">Select activity...</option>
-          <option>Running</option>
-          <option>Walking</option>
-          <option>Cycling</option>
-          <option>Gym Workout</option>
-          <option>Yoga</option>
-        </select>
+        <div class="input-group">
+          <label for="activity">Activity Type:</label>
+          <select id="activity" name="activity" required>
+            <option value="">Select activity...</option>
+            <option>Running</option>
+            <option>Walking</option>
+            <option>Cycling</option>
+            <option>Gym Workout</option>
+            <option>Yoga</option>
+          </select>
+        </div>
 
         <!-- Duration input -->
-        <label for="duration">Duration (minutes):</label>
-        <input type="number" id="duration" name="duration" placeholder="e.g., 45" required />
+        <div class="input-group">
+          <label for="duration">Duration (minutes):</label>
+          <input type="number" id="duration" name="duration" placeholder="e.g., 45" required />
+        </div>
 
         <!-- Calories burned input -->
-        <label for="calories">Calories Burned:</label>
-        <input type="number" id="calories" name="calories" placeholder="e.g., 300" required />
+        <div class="input-group">
+          <label for="calories">Calories Burned:</label>
+          <input type="number" id="calories" name="calories" placeholder="e.g., 300" required />
+        </div>
 
         <!-- Optional steps input -->
-        <label for="steps">Steps Taken (optional):</label>
-        <input type="number" id="steps" name="steps" placeholder="e.g., 5000" />
+        <div class="input-group">
+          <label for="steps">Steps Taken (optional):</label>
+          <input type="number" id="steps" name="steps" placeholder="e.g., 5000" />
+        </div>
 
         <!-- Submit button -->
         <button type="submit">Save Workout</button>
