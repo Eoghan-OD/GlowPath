@@ -1,4 +1,4 @@
-// ===== GlowPath Script (enhanced) =====
+// ===== GlowPath Script =====
 
 // --- Helpers ---
 const $ = (sel) => document.querySelector(sel);
