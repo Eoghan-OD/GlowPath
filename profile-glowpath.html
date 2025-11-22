@@ -11,7 +11,7 @@
   <header class="glowpath-header">
     <img src="assets/logo.png" alt="GlowPath Logo" class="glowpath-logo" />
     <h1>GlowPath Profile</h1>
-    <p>Profile page for Eoghan with CSV upload and download.</p>
+    <p>View Eoghan’s workout history, filters, charts and insights.</p>
   </header>
 
   <!-- Navigation menu, now including Profile -->
@@ -23,94 +23,152 @@
   </nav>
 
   <main class="glowpath-main">
-    <!-- Simple profile card -->
+
+    
+    <!-- Simple profile card + Add Workout shortcut -->
+
+
     <section class="glowpath-section">
       <h2>User Profile</h2>
       <p><strong>Name:</strong> Eoghan</p>
       <p><strong>Role:</strong> GlowPath User</p>
+      <p class="small-note">
+        Use the Add Workout tab to log new activities. All workouts saved there
+        will appear in the history, charts and insights on this profile page.
+      </p>
+      
     </section>
 
-    <!-- CSV upload / download -->
-    <section class="glowpath-section">
-      <h2>CSV File Handling</h2>
-      <p>Upload a CSV for Eoghan, or download it again later. If none is uploaded, a template CSV is provided.</p>
+    <!-- Summary cards -->
+    <section class="glowpath-section" id="summary-panel">
+      <h2>Workout overview</h2>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <h3>Total workouts</h3>
+          <p id="total-workouts">0</p>
+        </div>
+        <div class="summary-card">
+          <h3>Total duration (min)</h3>
+          <p id="total-duration">0</p>
+        </div>
+        <div class="summary-card">
+          <h3>Total calories</h3>
+          <p id="total-calories">0</p>
+        </div>
+        <div class="summary-card">
+          <h3>Average duration (min)</h3>
+          <p id="avg-duration">0</p>
+        </div>
+      </div>
+    </section>
 
-      <div style="display: flex; flex-wrap: wrap; gap: 1em; align-items: center;">
-        <input type="file" id="csvInput" accept=".csv,text/csv" />
-        <button id="uploadBtn" class="glowpath-button" type="button">Upload CSV</button>
-        <button id="downloadBtn" class="glowpath-button" type="button">Download CSV</button>
+    <!-- Filters and sorting -->
+    <section class="glowpath-section" id="filters">
+      <h2>Filter and sort workouts</h2>
+      <div class="filter-row">
+        <label>
+          Activity
+          <select id="filterActivity">
+            <option value="all">All activities</option>
+            <!-- options populated by script-glowpath.js -->
+          </select>
+        </label>
+
+        <label>
+          From date
+          <input id="filterFromDate" type="date" />
+        </label>
+
+        <label>
+          To date
+          <input id="filterToDate" type="date" />
+        </label>
+
+        <label>
+          Sort by
+          <select id="sortBy">
+            <option value="date-desc">Date (newest first)</option>
+            <option value="date-asc">Date (oldest first)</option>
+            <option value="duration-desc">Duration (high to low)</option>
+            <option value="calories-desc">Calories (high to low)</option>
+          </select>
+        </label>
+
+        <button id="applyFilterBtn" type="button" class="glowpath-button">
+          Apply filters
+        </button>
+      </div>
+    </section>
+
+    <!-- Recorded workouts table -->
+    <section class="glowpath-section" id="data-table">
+      <h2>Recorded workouts</h2>
+
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+        <button id="clearDataBtn" type="button" class="glowpath-button">Clear recorded workouts</button>
+        <button id="exportCsvBtn" type="button" class="glowpath-button">Export filtered workouts to CSV</button>
+        <button id="showTableBtn" class="glowpath-button">Show Table</button>
+        <button id="showChartsBtn" class="glowpath-button">Show Charts</button>
       </div>
 
-      <p id="status" style="margin-top: 0.75em;">No CSV uploaded yet.</p>
-      <p class="small-note">
-        If you have not uploaded a file, the download button will give a simple template CSV for Eoghan.
-      </p>
+      <table id="workoutTable" aria-describedby="summary-panel">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Activity</th>
+            <th>Duration (min)</th>
+            <th>Calories</th>
+            <th>Steps</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </section>
+
+    <!-- Charts (visualisation) -->
+    <section class="glowpath-section" id="data-visualisation">
+      <h2>Workout visualisation</h2>
+      <p id="chartLoading" style="display: none;">Updating charts…</p>
+
+      <div class="chart-container">
+        <h3>Duration per day</h3>
+        <canvas id="durationChart" aria-label="Duration chart" role="img"></canvas>
+      </div>
+
+      <div class="chart-container">
+        <h3>Steps per day</h3>
+        <canvas id="stepsChart" aria-label="Steps chart" role="img"></canvas>
+      </div>
+
+      <div class="chart-container">
+        <h3>Calories per day</h3>
+        <canvas id="caloriesChart" aria-label="Calories chart" role="img"></canvas>
+      </div>
+    </section>
+
+    <!-- Insights / weekly summary -->
+    <section class="glowpath-section" id="insightsSection">
+      <h2>Weekly insights</h2>
+      <p id="insights-weekly-summary"></p>
+      <p id="insights-top-activity"></p>
+      <p id="insights-avg-week"></p>
+      <p id="insights-compare-weeks"></p>
+      <p id="insights-reminder"></p>
+    </section>
+    <a href="index-glowpath.html" class="glowpath-button">Go to Add Workout</a>
+    
+    <!-- Back to top -->
+    <button id="backToTop" type="button" style="display:none;">
+      Back to top
+    </button>
   </main>
 
   <footer class="glowpath-footer">
     <p>© 2025 GlowPath Team | MTU Cork</p>
   </footer>
 
-  <script>
-    const csvInput = document.getElementById("csvInput");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const statusEl = document.getElementById("status");
-
-    // Holds the last uploaded CSV text in memory
-    let currentCsvText = "";
-
-    // Fallback template CSV if nothing uploaded yet
-    const templateCsv = [
-      "name,activity,duration,notes",
-      "Eoghan,Example Activity,30,Sample row"
-    ].join("\n");
-
-    // Handle CSV upload
-    uploadBtn.addEventListener("click", () => {
-      const file = csvInput.files && csvInput.files[0];
-      if (!file) {
-        statusEl.textContent = "Please select a CSV file first.";
-        return;
-      }
-
-      if (!file.name.toLowerCase().endsWith(".csv")) {
-        statusEl.textContent = "The selected file is not a CSV.";
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        currentCsvText = String(event.target.result || "");
-        statusEl.textContent = `CSV uploaded: "${file.name}" (${currentCsvText.length} characters).`;
-      };
-      reader.onerror = () => {
-        statusEl.textContent = "Error reading CSV file.";
-      };
-      reader.readAsText(file);
-    });
-
-    // Handle CSV download
-    downloadBtn.addEventListener("click", () => {
-      const csvToDownload = currentCsvText || templateCsv;
-
-      const blob = new Blob([csvToDownload], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = currentCsvText ? "eoghan_uploaded.csv" : "eoghan_template.csv";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      URL.revokeObjectURL(url);
-
-      statusEl.textContent = currentCsvText
-        ? "Downloaded your uploaded CSV."
-        : "Downloaded the template CSV.";
-    });
-  </script>
+  <!-- Scripts: Chart.js and shared GlowPath logic -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script-glowpath.js"></script>
 </body>
 </html>

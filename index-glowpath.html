@@ -23,8 +23,9 @@
     <a href="home-glowpath.html">Home</a>
     <!-- 'active' class marks the current page -->
     <a href="index-glowpath.html" class="active">Add Workout</a>
-    <a href="profile-glowpath.html" class="active">Profile</a>
+    <a href="profile-glowpath.html">Profile</a>
     <a href="team-glowpath.html">Team</a>
+    
   </nav>
 
   <!-- Main container for all content sections -->
@@ -99,101 +100,7 @@
     <button id="exportCsvBtn" type="button">Export current data to CSV</button>
   </section>
 
-  <!-- Table vs chart toggle -->
-  <section class="glowpath-section" id="view-toggle">
-    <h2>View options</h2>
-    <button id="toggleTableBtn" type="button">Show table</button>
-    <button id="toggleChartsBtn" type="button">Show charts</button>
-  </section>
-
-  <!-- Filters and sorting -->
-  <section class="glowpath-section" id="filters">
-    <h2>Filter and sort workouts</h2>
-    <div class="filter-row">
-      <label>
-        Activity
-        <select id="filterActivity">
-          <option value="all">All activities</option>
-          <!-- options will be filled from data -->
-        </select>
-      </label>
-
-      <label>
-        From date
-        <input id="filterFromDate" type="date">
-      </label>
-
-      <label>
-        To date
-        <input id="filterToDate" type="date">
-      </label>
-
-      <label>
-        Sort by
-        <select id="sortBy">
-          <option value="date-desc">Date (newest first)</option>
-          <option value="date-asc">Date (oldest first)</option>
-          <option value="duration-desc">Duration (high to low)</option>
-          <option value="calories-desc">Calories (high to low)</option>
-        </select>
-      </label>
-
-      <button id="applyFilterBtn" type="button">Apply filters</button>
-    </div>
-  </section>
-
-  <!-- Recorded workouts table -->
-  <section class="glowpath-section" id="data-table">
-    <h2>Recorded workouts</h2>
-
-    <button id="clearDataBtn" type="button">
-      Clear recorded workouts
-    </button>
-
-    <table id="workoutTable" aria-describedby="summary-panel">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Activity</th>
-          <th>Duration (min)</th>
-          <th>Calories</th>
-          <th>Steps</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <!-- Charts (visualisation) -->
-  <section class="glowpath-section" id="data-visualisation">
-    <h2>Workout visualisation</h2>
-    <p id="chartLoading" style="display: none;">Updating charts…</p>
-
-    <div class="chart-container">
-      <h3>Duration per day</h3>
-      <canvas id="durationChart" aria-label="Duration chart" role="img"></canvas>
-    </div>
-
-    <div class="chart-container">
-      <h3>Steps per day</h3>
-      <canvas id="stepsChart" aria-label="Steps chart" role="img"></canvas>
-    </div>
-
-    <div class="chart-container">
-      <h3>Calories per day</h3>
-      <canvas id="caloriesChart" aria-label="Calories chart" role="img"></canvas>
-    </div>
-  </section>
-
-  <!-- Insights / weekly summary -->
-  <section class="glowpath-section" id="insightsSection">
-    <h2>Weekly insights</h2>
-    <p id="insights-weekly-summary"></p>
-    <p id="insights-top-activity"></p>
-    <p id="insights-avg-week"></p>
-    <p id="insights-compare-weeks"></p>
-    <p id="insights-reminder"></p>
-  </section>
+  
 
   <button id="backToTop" type="button" style="display:none;">Back to top</button>
 </main>
