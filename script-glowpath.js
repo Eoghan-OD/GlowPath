@@ -655,22 +655,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableSection = $('#data-table');
     const chartsSection = $('#data-visualisation');
 
-    if (toggleTableBtn) {
+    if (toggleTableBtn && tableSection && chartsSection) {
       toggleTableBtn.addEventListener('click', () => {
-        if (tableSection) tableSection.style.display = 'block';
-        if (chartsSection) chartsSection.style.display = 'none';
+        tableSection.style.display = 'block';
+        chartsSection.style.display = 'none';
       });
     }
 
-    if (toggleChartsBtn) {
+    if (toggleChartsBtn && tableSection && chartsSection) {
       toggleChartsBtn.addEventListener('click', () => {
-        if (tableSection) tableSection.style.display = 'none';
-        if (chartsSection) chartsSection.style.display = 'block';
+        tableSection.style.display = 'none';
+        chartsSection.style.display = 'block';
       });
     }
 
-    // default: show both (or you can choose one)
+    // Default state when page loads
     if (tableSection) tableSection.style.display = 'block';
     if (chartsSection) chartsSection.style.display = 'block';
-  }
+    }
 });
