@@ -80,11 +80,16 @@
       <input type="file" id="csvFileInput" accept=".csv" />
       <!-- Button to preview/import CSV content -->
       <button id="uploadBtn" type="button">Preview CSV</button>
+      <button id="clearDataBtn" type="button">
+        Clear recorded workouts
+      </button>
+
     </section>
 
     <!-- Section to display recorded workout data -->
     <section class="glowpath-section" id="data-table">
       <h2>Recorded Workouts</h2>
+      
       <!-- Table dynamically filled via JavaScript -->
       <table id="workoutTable" aria-describedby="summary-panel">
         <thead>
@@ -100,7 +105,22 @@
       </table>
     </section>
 
-    <!-- ✅ New: Workout Summary panel -->
+    <section class="glowpath-section" id="data-visualisation">
+    <h2>Workout Visualisation</h2>
+    <p>This section shows workouts as charts, using the same data from above.</p>
+
+    <div class="chart-container">
+      <h3>Duration per day</h3>
+      <canvas id="durationChart" aria-label="Duration chart" role="img"></canvas>
+    </div>
+
+    <div class="chart-container">
+      <h3>Steps per day</h3>
+      <canvas id="stepsChart" aria-label="Steps chart" role="img"></canvas>
+    </div>
+  </section>
+
+    <!-- : Workout Summary panel -->
     <section id="summary-panel" class="glowpath-section" aria-live="polite">
       <h2>Workout Summary</h2>
       <div class="summary-grid">
@@ -129,10 +149,15 @@
     <p>© 2025 GlowPath Team | MTU Cork</p>
   </footer>
 
-  <!-- ✅ New: Back to Top floating button -->
+  <!-- New: Back to Top floating button -->
   <button id="backToTop" title="Go to top" aria-label="Back to top">⬆️</button>
 
+  
+  
+  <!-- Chart.js for visualisation -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- JavaScript file for logic and data handling -->
-  <script src="script-glowpath.js"></script>
+    <script src="script-glowpath.js"></script>
 </body>
 </html>

@@ -1,12 +1,10 @@
-// ===== GlowPath Script =====
+// ===== GlowPath Script  =====
 
-// --- Helpers ---
 const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-
 const STORAGE_KEY = 'glowpath_workouts';
 
-// Load workouts from localStorage
+// ---------- Data load/save ----------
+
 function loadWorkouts() {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -17,12 +15,10 @@ function loadWorkouts() {
   }
 }
 
-// Save workouts to localStorage
 function saveWorkouts(list) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
-// Format today as YYYY-MM-DD
 function todayISO() {
   const d = new Date();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -30,9 +26,12 @@ function todayISO() {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
-// Render workouts table
+// ---------- Table + summary  ----------
+
 function renderTable(workouts) {
   const tbody = $('#workoutTable tbody');
+  if (!tbody) return;
+
   tbody.innerHTML = '';
   workouts.forEach((w) => {
     const tr = document.createElement('tr');
@@ -47,51 +46,85 @@ function renderTable(workouts) {
   });
 }
 
-// Update summary metrics
 function updateSummary(workouts) {
   const totalWorkouts = workouts.length;
   const totalDuration = workouts.reduce((s, w) => s + Number(w.duration || 0), 0);
   const totalCalories = workouts.reduce((s, w) => s + Number(w.calories || 0), 0);
   const avgDuration = totalWorkouts ? Math.round((totalDuration / totalWorkouts) * 10) / 10 : 0;
 
-  $('#total-workouts').textContent = totalWorkouts;
-  $('#total-duration').textContent = totalDuration;
-  $('#total-calories').textContent = totalCalories;
-  $('#avg-duration').textContent = avgDuration;
+  const totalWorkoutsEl = $('#total-workouts');
+  const totalDurationEl = $('#total-duration');
+  const totalCaloriesEl = $('#total-calories');
+  const avgDurationEl = $('#avg-duration');
+
+  if (totalWorkoutsEl) totalWorkoutsEl.textContent = totalWorkouts;
+  if (totalDurationEl) totalDurationEl.textContent = totalDuration;
+  if (totalCaloriesEl) totalCaloriesEl.textContent = totalCalories;
+  if (avgDurationEl) avgDurationEl.textContent = avgDuration;
 }
 
-// Basic CSV parser (comma-separated, with a header row expected)
+// ---------- CSV parsing  ----------
+
 function parseCSV(text) {
-  // Normalize newlines and split
-  const lines = text.replace(/\r/g, '').trim().split('\n').filter(Boolean);
+  if (!text) return [];
+
+  let clean = text.replace(/\r/g, '');
+  clean = clean.replace(/^\uFEFF/, '').trim();
+  if (!clean) return [];
+
+  const lines = clean.split('\n').filter(Boolean);
   if (lines.length === 0) return [];
 
-  // Detect header
-  const header = lines[0].split(',').map((h) => h.trim().toLowerCase());
+  // Auto-detect delimiter: comma, semicolon, or tab
+  const firstLine = lines[0];
+  const candidates = [',', ';', '\t'];
+  let delimiter = ',';
+  let maxCount = -1;
+
+  candidates.forEach((d) => {
+    const count = (firstLine.match(new RegExp('\\' + d, 'g')) || []).length;
+    if (count > maxCount) {
+      maxCount = count;
+      delimiter = d;
+    }
+  });
+
+  const headerRaw = firstLine.split(delimiter).map((h) => h.trim());
+  const header = headerRaw.map((h) => h.toLowerCase());
+
   const idx = {
-    date: header.findIndex(h => /date/i.test(h)),
-    activity: header.findIndex(h => /activity/i.test(h)),
-    duration: header.findIndex(h => /duration/i.test(h)),
-    calories: header.findIndex(h => /cal/i.test(h)),
-    steps: header.findIndex(h => /step/i.test(h)),
+    date: header.findIndex((h) => /date/.test(h)),
+    activity: header.findIndex((h) => /activity/.test(h)),
+    duration: header.findIndex((h) => /duration/.test(h)),
+    calories: header.findIndex((h) => /cal/.test(h)),
+    steps: header.findIndex((h) => /step/.test(h)),
   };
 
   const rows = [];
+
   for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map((c) => c.trim());
+    const colsRaw = lines[i].split(delimiter);
+    const cols = colsRaw.map((c) => c.trim());
+
+    const get = (index) =>
+      index >= 0 && index < cols.length ? cols[index] : '';
+
     const entry = {
-      date: idx.date >= 0 ? cols[idx.date] : todayISO(),
-      activity: idx.activity >= 0 ? cols[idx.activity] : 'Unknown',
-      duration: idx.duration >= 0 ? Number(cols[idx.duration] || 0) : 0,
-      calories: idx.calories >= 0 ? Number(cols[idx.calories] || 0) : 0,
-      steps: idx.steps >= 0 ? Number(cols[idx.steps] || 0) : '',
+      date: idx.date >= 0 ? get(idx.date) : todayISO(),
+      activity: idx.activity >= 0 ? get(idx.activity) || 'Unknown' : 'Unknown',
+      duration: idx.duration >= 0 ? Number(get(idx.duration) || 0) : 0,
+      calories: idx.calories >= 0 ? Number(get(idx.calories) || 0) : 0,
+      steps: idx.steps >= 0 ? Number(get(idx.steps) || 0) : '',
     };
+
     rows.push(entry);
   }
+
   return rows;
 }
 
-// Back to Top visibility toggle
+// ---------- Back-to-top  ----------
+
 function setupBackToTop() {
   const btn = $('#backToTop');
   if (!btn) return;
@@ -103,23 +136,120 @@ function setupBackToTop() {
   });
 }
 
-// Initialize page
+// ---------- Charts  ----------
+
+let durationChartInstance = null;
+let stepsChartInstance = null;
+
+function renderCharts(workouts) {
+  const durationCanvas = $('#durationChart');
+  const stepsCanvas = $('#stepsChart');
+
+  // If the page has no chart section, do nothing
+  if (!durationCanvas || !stepsCanvas || typeof Chart === 'undefined') return;
+
+  const labels = workouts.map((w) => w.date);
+  const durations = workouts.map((w) => Number(w.duration || 0));
+  const steps = workouts.map((w) => Number(w.steps || 0));
+
+  const hasData = workouts.length > 0 &&
+                  (durations.some((v) => v > 0) || steps.some((v) => v > 0));
+
+  // If no data, destroy existing charts and exit
+  if (!hasData) {
+    if (durationChartInstance) {
+      durationChartInstance.destroy();
+      durationChartInstance = null;
+    }
+    if (stepsChartInstance) {
+      stepsChartInstance.destroy();
+      stepsChartInstance = null;
+    }
+    return;
+  }
+
+  // Duration line chart
+  if (durationChartInstance) {
+    durationChartInstance.data.labels = labels;
+    durationChartInstance.data.datasets[0].data = durations;
+    durationChartInstance.update();
+  } else {
+    durationChartInstance = new Chart(durationCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Duration (minutes)',
+            data: durations
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: true }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Date' } },
+          y: { title: { display: true, text: 'Minutes' } }
+        }
+      }
+    });
+  }
+
+  // Steps bar chart
+  if (stepsChartInstance) {
+    stepsChartInstance.data.labels = labels;
+    stepsChartInstance.data.datasets[0].data = steps;
+    stepsChartInstance.update();
+  } else {
+    stepsChartInstance = new Chart(stepsCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Steps',
+            data: steps
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: true }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Date' } },
+          y: { title: { display: true, text: 'Steps' } }
+        }
+      }
+    });
+  }
+}
+
+// ---------- Main init ----------
+
 document.addEventListener('DOMContentLoaded', () => {
   const form = $('#glowpath-form');
   const messageEl = $('#glowpath-message');
   const fileInput = $('#csvFileInput');
   const uploadBtn = $('#uploadBtn');
+  const clearBtn = $('#clearDataBtn');
 
-  // Load + render existing data
   let workouts = loadWorkouts();
+
   renderTable(workouts);
   updateSummary(workouts);
+  renderCharts(workouts);
   setupBackToTop();
 
-  // Handle manual form submissions
+  // Manual form submit
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+
       const activity = $('#activity').value.trim();
       const duration = Number($('#duration').value);
       const calories = Number($('#calories').value);
@@ -127,7 +257,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const steps = stepsRaw === '' ? '' : Number(stepsRaw);
 
       if (!activity || !duration || !calories) {
-        messageEl.textContent = 'Please fill in all required fields.';
+        if (messageEl) {
+          messageEl.textContent = 'Please fill in all required fields.';
+        }
         return;
       }
 
@@ -143,19 +275,24 @@ document.addEventListener('DOMContentLoaded', () => {
       saveWorkouts(workouts);
       renderTable(workouts);
       updateSummary(workouts);
+      renderCharts(workouts);
 
       form.reset();
-      messageEl.textContent = 'Workout saved!';
-      setTimeout(() => (messageEl.textContent = ''), 2000);
+      if (messageEl) {
+        messageEl.textContent = 'Workout saved.';
+        setTimeout(() => (messageEl.textContent = ''), 2000);
+      }
     });
   }
 
-  // Handle CSV preview/import
+  // CSV upload/import
   if (uploadBtn) {
     uploadBtn.addEventListener('click', () => {
       const file = fileInput && fileInput.files && fileInput.files[0];
       if (!file) {
-        messageEl.textContent = 'Please choose a CSV file first.';
+        if (messageEl) {
+          messageEl.textContent = 'Please choose a CSV file first.';
+        }
         return;
       }
       const reader = new FileReader();
@@ -163,22 +300,49 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const rows = parseCSV(ev.target.result);
           if (!rows.length) {
-            messageEl.textContent = 'No valid rows found in the CSV.';
+            if (messageEl) {
+              messageEl.textContent = 'No valid rows found in the CSV.';
+            }
             return;
           }
-          // Append to current workouts
           workouts = workouts.concat(rows);
           saveWorkouts(workouts);
           renderTable(workouts);
           updateSummary(workouts);
-          messageEl.textContent = `CSV imported: ${rows.length} row(s) added.`;
-          setTimeout(() => (messageEl.textContent = ''), 2500);
+          renderCharts(workouts);
+          if (messageEl) {
+            messageEl.textContent = `CSV imported: ${rows.length} row(s) added.`;
+            setTimeout(() => (messageEl.textContent = ''), 2500);
+          }
         } catch (err) {
           console.error(err);
-          messageEl.textContent = 'There was an error reading the CSV.';
+          if (messageEl) {
+            messageEl.textContent = 'There was an error reading the CSV.';
+          }
         }
       };
       reader.readAsText(file);
+    });
+  }
+
+  // Clear button
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      const confirmed = window.confirm(
+        'Clear all recorded workouts from this browser?'
+      );
+      if (!confirmed) return;
+
+      workouts = [];
+      saveWorkouts(workouts);
+      renderTable(workouts);
+      updateSummary(workouts);
+      renderCharts(workouts);
+
+      if (messageEl) {
+        messageEl.textContent = 'All recorded workouts cleared.';
+        setTimeout(() => (messageEl.textContent = ''), 2000);
+      }
     });
   }
 });
