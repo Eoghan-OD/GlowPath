@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GlowPath | Profile</title>
+  <link rel="stylesheet" href="style-glowpath.css" />
+</head>
+<body>
+  <!-- Header section with logo and title -->
+  <header class="glowpath-header">
+    <img src="assets/logo.png" alt="GlowPath Logo" class="glowpath-logo" />
+    <h1>GlowPath Profile</h1>
+    <p>Profile page for Eoghan with CSV upload and download.</p>
+  </header>
+
+  <!-- Navigation menu, now including Profile -->
+  <nav class="glowpath-nav">
+    <a href="home-glowpath.html">Home</a>
+    <a href="index-glowpath.html">Add Workout</a>
+    <a href="profile-glowpath.html" class="active">Profile</a>
+    <a href="team-glowpath.html">Team</a>
+  </nav>
+
+  <main class="glowpath-main">
+    <!-- Simple profile card -->
+    <section class="glowpath-section">
+      <h2>User Profile</h2>
+      <p><strong>Name:</strong> Eoghan</p>
+      <p><strong>Role:</strong> GlowPath User</p>
+    </section>
+
+    <!-- CSV upload / download -->
+    <section class="glowpath-section">
+      <h2>CSV File Handling</h2>
+      <p>Upload a CSV for Eoghan, or download it again later. If none is uploaded, a template CSV is provided.</p>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 1em; align-items: center;">
+        <input type="file" id="csvInput" accept=".csv,text/csv" />
+        <button id="uploadBtn" class="glowpath-button" type="button">Upload CSV</button>
+        <button id="downloadBtn" class="glowpath-button" type="button">Download CSV</button>
+      </div>
+
+      <p id="status" style="margin-top: 0.75em;">No CSV uploaded yet.</p>
+      <p class="small-note">
+        If you have not uploaded a file, the download button will give a simple template CSV for Eoghan.
+      </p>
+    </section>
+  </main>
+
+  <footer class="glowpath-footer">
+    <p>© 2025 GlowPath Team | MTU Cork</p>
+  </footer>
+
+  <script>
+    const csvInput = document.getElementById("csvInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const statusEl = document.getElementById("status");
+
+    // Holds the last uploaded CSV text in memory
+    let currentCsvText = "";
+
+    // Fallback template CSV if nothing uploaded yet
+    const templateCsv = [
+      "name,activity,duration,notes",
+      "Eoghan,Example Activity,30,Sample row"
+    ].join("\n");
+
+    // Handle CSV upload
+    uploadBtn.addEventListener("click", () => {
+      const file = csvInput.files && csvInput.files[0];
+      if (!file) {
+        statusEl.textContent = "Please select a CSV file first.";
+        return;
+      }
+
+      if (!file.name.toLowerCase().endsWith(".csv")) {
+        statusEl.textContent = "The selected file is not a CSV.";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        currentCsvText = String(event.target.result || "");
+        statusEl.textContent = `CSV uploaded: "${file.name}" (${currentCsvText.length} characters).`;
+      };
+      reader.onerror = () => {
+        statusEl.textContent = "Error reading CSV file.";
+      };
+      reader.readAsText(file);
+    });
+
+    // Handle CSV download
+    downloadBtn.addEventListener("click", () => {
+      const csvToDownload = currentCsvText || templateCsv;
+
+      const blob = new Blob([csvToDownload], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = currentCsvText ? "eoghan_uploaded.csv" : "eoghan_template.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      URL.revokeObjectURL(url);
+
+      statusEl.textContent = currentCsvText
+        ? "Downloaded your uploaded CSV."
+        : "Downloaded the template CSV.";
+    });
+  </script>
+</body>
+</html>
