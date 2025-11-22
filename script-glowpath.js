@@ -643,6 +643,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Live update when activity filter changes
+  const filterActivity = $('#filterActivity');
+  if (filterActivity) {
+    filterActivity.addEventListener('change', () => {
+      refreshView();
+    });
+  }
+
   // Export CSV
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
