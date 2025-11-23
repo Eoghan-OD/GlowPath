@@ -592,7 +592,7 @@ async function callGlowpathLLM(summaryText) {
         messages: [
           {
             role: "system",
-            content: "You are a friendly fitness coach. Give concise, helpful tips."
+            content: "You are a friendly fitness coach. Give concise, helpful tips and Compare current week results to previous week in a seperate paragraph"
           },
           {
             role: "user",
@@ -749,34 +749,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Toggle table / charts
-  const tableSection = document.getElementById("data-table");
-  const chartsSection = document.getElementById("data-visualisation");
+  if (toggleTableBtn || toggleChartsBtn) {
+    const tableSection = $('#data-table');
+    const chartsSection = $('#data-visualisation');
 
-  const tableBtn = document.getElementById("toggleTableBtn");
-  const chartsBtn = document.getElementById("toggleChartsBtn");
+    if (toggleTableBtn && tableSection && chartsSection) {
+      toggleTableBtn.addEventListener('click', () => {
+        tableSection.style.display = 'block';
+        chartsSection.style.display = 'none';
+      });
+    }
 
-  tableBtn.addEventListener("click", () => {
-  const isVisible = tableSection.style.display !== "none";
-  tableSection.style.display = isVisible ? "none" : "block";
-  tableBtn.textContent = isVisible ? "Show table" : "Hide table";
-});
+    if (toggleChartsBtn && tableSection && chartsSection) {
+      toggleChartsBtn.addEventListener('click', () => {
+        tableSection.style.display = 'none';
+        chartsSection.style.display = 'block';
+      });
+    }
 
-chartsBtn.addEventListener("click", () => {
-  const isVisible = chartsSection.style.display !== "none";
-  chartsSection.style.display = isVisible ? "none" : "block";
-  chartsBtn.textContent = isVisible ? "Show charts" : "Hide charts";
-});
-
-// default initial state
-tableSection.style.display = "none";
-chartsSection.style.display = "none";
-
+    // Default state when page loads
+    if (tableSection) tableSection.style.display = 'block';
+    if (chartsSection) chartsSection.style.display = 'none';
+    }
+    
+    // GPT RESPONSE
 
     const aiBtn = $('#aiInsightBtn');
     const aiText = $('#aiInsightText');
 
     if (aiBtn && aiText) {
       aiBtn.addEventListener('click', async () => {
+        // build a short text summary from the currently filtered workouts
         const totalWorkouts = filteredWorkouts.length;
         const totalMinutes = filteredWorkouts.reduce(
           (s, w) => s + Number(w.duration || 0),

@@ -5,38 +5,123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GlowPath | Profile</title>
   <link rel="stylesheet" href="style-glowpath.css" />
+
+  <!-- Minimal modal styling -->
+  <style>
+    /* Backdrop for the modal */
+    .auth-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    /* When hidden, override the backdrop display */
+    .auth-modal-backdrop.auth-modal-hidden {
+      display: none;
+    }
+
+    .auth-modal-content {
+      background: #ffffff;
+      padding: 1.75rem 1.5rem;
+      border-radius: 1.25rem;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+    }
+    .auth-modal-content h2 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+    }
+    .auth-modal-content h3 {
+      margin-top: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .auth-modal-content form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .auth-modal-content label {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.9rem;
+      gap: 0.25rem;
+    }
+    .auth-modal-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .auth-modal-close {
+      background: transparent;
+      border: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-top: 0.75rem;
+      padding: 0;
+    }
+    .nav-logout-btn {
+      margin-left: auto;
+    }
+  </style>
 </head>
 <body>
   <!-- Header section with logo and title -->
   <header class="glowpath-header">
     <img src="assets/logo.png" alt="GlowPath Logo" class="glowpath-logo" />
     <h1>GlowPath Profile</h1>
-    <p>View Eoghan’s workout history, filters, charts and insights.</p>
+    <p>View workout history, filters, charts and insights.</p>
   </header>
 
-  <!-- Navigation menu, now including Profile -->
+  <!-- Navigation menu -->
   <nav class="glowpath-nav">
     <a href="home-glowpath.html">Home</a>
     <a href="index-glowpath.html">Add Workout</a>
     <a href="profile-glowpath.html" class="active">Profile</a>
     <a href="team-glowpath.html">Team</a>
+
+    <!-- Logout in the "task bar" -->
+    <button id="logoutNavBtn" class="glowpath-button nav-logout-btn" type="button">
+      Logout
+    </button>
   </nav>
 
   <main class="glowpath-main">
 
-    
-    <!-- Simple profile card + Add Workout shortcut -->
-
-
-    <section class="glowpath-section">
+    <!-- MERGED: User profile + user accounts -->
+    <section class="glowpath-section" id="auth-section">
       <h2>User Profile</h2>
-      <p><strong>Name:</strong> Eoghan</p>
-      <p><strong>Role:</strong> GlowPath User</p>
-      <p class="small-note">
-        Use the Add Workout tab to log new activities. All workouts saved there
-        will appear in the history, charts and insights on this profile page.
+
+      <p>
+        <strong>Name:</strong>
+        <span id="userDisplayName">Guest</span>
       </p>
-      
+      <p><strong>Role:</strong> GlowPath User</p>
+
+      <p class="small-note">
+        Use the Add Workout tab to log new activities. All workouts saved there will appear
+        in the history, charts and insights on this profile page. Accounts are stored locally
+        in this browser for demonstration purposes only.
+      </p>
+
+      <p id="currentUserLabel" class="small-note">No user logged in</p>
+
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:0.5rem;">
+        <button id="openAuthModalBtn" class="glowpath-button" type="button">
+          Login / Sign up
+        </button>
+        <button id="downloadUsersBtn" class="glowpath-button glowpath-button-secondary" type="button">
+          Download users CSV
+        </button>
+      </div>
+
+      <p id="authMessage" class="small-note"></p>
     </section>
 
     <!-- Summary cards -->
@@ -62,17 +147,15 @@
       </div>
     </section>
 
-    <!-- Filters and sorting -->
+    <!-- Filters, sort and view toggles -->
     <section class="glowpath-section" id="filters">
       <h2>Filter and sort workouts</h2>
 
-      <!-- row with four equal inputs -->
       <div class="filter-row">
         <label>
           Activity
           <select id="filterActivity">
             <option value="all">All activities</option>
-            <!-- options populated by script-glowpath.js -->
           </select>
         </label>
 
@@ -97,7 +180,6 @@
         </label>
       </div>
 
-      <!-- row with three equal buttons under the inputs -->
       <div class="filter-actions">
         <button id="applyFilterBtn" type="button" class="glowpath-button">
           Apply filters
@@ -110,7 +192,6 @@
         </button>
       </div>
     </section>
-
 
     <!-- Recorded workouts table -->
     <section class="glowpath-section" id="data-table">
@@ -127,13 +208,15 @@
         </thead>
         <tbody></tbody>
       </table>
-        <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
-          <button id="clearDataBtn" type="button" class="glowpath-button">Clear recorded workouts</button>
-          <button id="exportCsvBtn" type="button" class="glowpath-button">Export filtered workouts to CSV</button>
-        </div>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center; margin-top:0.5rem;">
+        <button id="clearDataBtn" type="button" class="glowpath-button">
+          Clear recorded workouts
+        </button>
+        <button id="exportCsvBtn" type="button" class="glowpath-button">
+          Export filtered workouts to CSV
+        </button>
+      </div>
     </section>
-
-
 
     <!-- Charts (visualisation) -->
     <section class="glowpath-section" id="data-visualisation">
@@ -165,8 +248,8 @@
       <p id="insights-compare-weeks"></p>
       <p id="insights-reminder"></p>
     </section>
-    
-    
+
+    <!-- AI Insight -->
     <section class="glowpath-section" id="ai-section">
       <h2>AI insight</h2>
       <button id="aiInsightBtn" class="glowpath-button">
@@ -174,8 +257,9 @@
       </button>
       <p id="aiInsightText"></p>
     </section>
-    
+
     <a href="index-glowpath.html" class="glowpath-button">Go to Add Workout</a>
+
     <!-- Back to top -->
     <button id="backToTop" type="button" style="display:none;">
       Back to top
@@ -186,8 +270,58 @@
     <p>© 2025 GlowPath Team | MTU Cork</p>
   </footer>
 
+  <!-- Auth modal (login + sign up) -->
+  <div id="authModal" class="auth-modal-backdrop auth-modal-hidden" aria-hidden="true">
+    <div class="auth-modal-content" role="dialog" aria-modal="true">
+      <h2>Sign in to GlowPath</h2>
+      <p class="small-note">
+        Log in to see your saved GlowPath data. New users can sign up below.
+      </p>
+
+      <!-- Login form -->
+      <form id="loginModalForm">
+        <label>
+          Name
+          <input type="text" id="login-modal-name" required />
+        </label>
+        <label>
+          Password
+          <input type="password" id="login-modal-password" required />
+        </label>
+        <div class="auth-modal-actions">
+          <button type="submit" class="glowpath-button">Login</button>
+        </div>
+      </form>
+
+      <h3>New to GlowPath?</h3>
+      <!-- Sign up form -->
+      <form id="signupModalForm">
+        <label>
+          Name
+          <input type="text" id="signup-modal-name" required />
+        </label>
+        <label>
+          Password
+          <input type="password" id="signup-modal-password" required />
+        </label>
+        <p class="small-note">
+          When you sign up, your current workouts are saved to this account.
+        </p>
+        <div class="auth-modal-actions">
+          <button type="submit" class="glowpath-button">Sign up and save my data</button>
+        </div>
+      </form>
+
+      <button type="button" id="closeAuthModalBtn" class="auth-modal-close">
+        Close
+      </button>
+    </div>
+  </div>
+
   <!-- Scripts: Chart.js and shared GlowPath logic -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script-glowpath.js"></script>
+  <!-- User account logic -->
+  <script src="userprofile.js"></script>
 </body>
 </html>
