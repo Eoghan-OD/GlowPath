@@ -704,26 +704,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Toggle table / charts
-  if (toggleTableBtn || toggleChartsBtn) {
-    const tableSection = $('#data-table');
-    const chartsSection = $('#data-visualisation');
+  const tableSection = document.getElementById("data-table");
+  const chartsSection = document.getElementById("data-visualisation");
 
-    if (toggleTableBtn && tableSection && chartsSection) {
-      toggleTableBtn.addEventListener('click', () => {
-        tableSection.style.display = 'block';
-        chartsSection.style.display = 'none';
-      });
-    }
+  const tableBtn = document.getElementById("toggleTableBtn");
+  const chartsBtn = document.getElementById("toggleChartsBtn");
 
-    if (toggleChartsBtn && tableSection && chartsSection) {
-      toggleChartsBtn.addEventListener('click', () => {
-        tableSection.style.display = 'none';
-        chartsSection.style.display = 'block';
-      });
-    }
+// TABLE TOGGLE
+tableBtn.addEventListener("click", () => {
+  const isVisible = tableSection.style.display !== "none";
+  tableSection.style.display = isVisible ? "none" : "block";
+  tableBtn.textContent = isVisible ? "Show table" : "Hide table";
+});
 
-    // Default state when page loads
-    if (tableSection) tableSection.style.display = 'block';
-    if (chartsSection) chartsSection.style.display = 'none';
-    }
+// CHARTS TOGGLE
+chartsBtn.addEventListener("click", () => {
+  const isVisible = chartsSection.style.display !== "none";
+  chartsSection.style.display = isVisible ? "none" : "block";
+  chartsBtn.textContent = isVisible ? "Show charts" : "Hide charts";
+});
+
+// default state (optional)
+tableSection.style.display = "none";
+chartsSection.style.display = "none";
+
+
+   
 });
