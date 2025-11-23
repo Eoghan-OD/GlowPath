@@ -755,16 +755,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const tableBtn = document.getElementById("toggleTableBtn");
   const chartsBtn = document.getElementById("toggleChartsBtn");
 
-    if (toggleChartsBtn && tableSection && chartsSection) {
-      toggleChartsBtn.addEventListener('click', () => {
-        tableSection.style.display = 'none';
-        chartsSection.style.display = 'block';
-      });
-    }
+  tableBtn.addEventListener("click", () => {
+  const isVisible = tableSection.style.display !== "none";
+  tableSection.style.display = isVisible ? "none" : "block";
+  tableBtn.textContent = isVisible ? "Show table" : "Hide table";
+});
 
-    if (tableSection) tableSection.style.display = 'block';
-    if (chartsSection) chartsSection.style.display = 'none';
-    
+chartsBtn.addEventListener("click", () => {
+  const isVisible = chartsSection.style.display !== "none";
+  chartsSection.style.display = isVisible ? "none" : "block";
+  chartsBtn.textContent = isVisible ? "Show charts" : "Hide charts";
+});
+
+// default initial state
+tableSection.style.display = "none";
+chartsSection.style.display = "none";
+
+
     const aiBtn = $('#aiInsightBtn');
     const aiText = $('#aiInsightText');
 
