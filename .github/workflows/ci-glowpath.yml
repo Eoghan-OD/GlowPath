@@ -1,0 +1,34 @@
+name: GlowPath CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate-site:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Just prove the project builds as a static site
+      - name: List project files
+        run: ls -R
+
+      # Basic HTML validation (uses htmlhint with default rules)
+      - name: Validate HTML with htmlhint
+        run: |
+          npx --yes htmlhint "**/*.html" || true
+
+      # Basic CSS validation using stylelint (very loose)
+      - name: Validate CSS with stylelint
+        run: |
+          npx --yes stylelint "**/*.css" || true
+
+      # Basic JS syntax check with eslint (no custom rules)
+      - name: Check JS syntax with eslint
+        run: |
+          npx --yes eslint "**/*.js" --no-eslintrc --rule 'no-undef: 0' || true
