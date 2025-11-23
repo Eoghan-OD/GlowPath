@@ -578,7 +578,7 @@ function refreshView() {
 // AI stuff
 
 async function callGlowpathLLM(summaryText) {
-  const apiKey = "PUT THE API KEY HERE OR AI WONT WORK"; // <- put your Groq key here
+  const apiKey = "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"; // <- put your Groq key here
 
   try {
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
