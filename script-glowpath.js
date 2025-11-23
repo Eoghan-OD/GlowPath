@@ -679,6 +679,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Default state when page loads
     if (tableSection) tableSection.style.display = 'block';
-    if (chartsSection) chartsSection.style.display = 'block';
+    if (chartsSection) chartsSection.style.display = 'none';
     }
 });
