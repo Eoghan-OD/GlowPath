@@ -148,6 +148,23 @@ body {
   font-weight: 500;
 }
 
+/* === Fade-in animation for all sections === */
+.glowpath-section {
+  animation: fadeIn 1.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 /* Adjust layout for mobile devices */
 @media (max-width: 600px) {
   .glowpath-main {
@@ -266,14 +283,101 @@ body {
   margin-top: 0.6rem;
 }
 
-/* === Make Manual Workout inputs match the dashed CSV style === */
-#manual-entry .input-group {
-  display: inline-flex;
+/* === Manual workout form – labels left, inputs right, clean layout === */
+
+#manual-input form {
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.35rem;
-  transition: all 0.25s ease;
+  gap: 0.8rem;              /* small vertical spacing between rows */
+  max-width: 620px;
 }
+
+/* Label left / Input right layout */
+#manual-input label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;              /* SMALL gap between label + input */
+  font-weight: 600;
+  color: #7d3cff;
+  margin: 0;
+}
+
+/* Inputs on the right */
+#manual-input input,
+#manual-input select {
+  flex: 0 0 58%;            /* input takes a bit more than half */
+  max-width: 360px;
+  appearance: none;
+  border: 2px solid #cfcfcf;
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.92rem;
+  color: #333;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover & Focus */
+#manual-input input:hover,
+#manual-input select:hover,
+#manual-input input:focus,
+#manual-input select:focus {
+  border-color: #2ecc71;
+  background-color: #f3fff6;
+  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.18);
+  outline: none;
+}
+
+/* Placeholder styling */
+#manual-input input::placeholder {
+  color: #999;
+}
+
+/* Remove arrows on number fields */
+#manual-input input[type="number"] {
+  -moz-appearance: textfield;
+}
+#manual-input input[type="number"]::-webkit-inner-spin-button,
+#manual-input input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Mobile fix: stack label above input */
+@media (max-width: 600px) {
+  #manual-input label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  #manual-input input,
+  #manual-input select {
+    flex: 1;
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+/* Put the Save workout button on the right */
+#manual-input button {
+  align-self: flex-end;
+}
+
+/* Remove spin buttons from number fields */
+#manual-input input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+#manual-input input[type="number"]::-webkit-outer-spin-button,
+#manual-input input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 
 /* Default label + input style */
 #manual-entry .input-group label {
@@ -334,7 +438,8 @@ body {
   margin-top: 1rem;
 }
 
-.metric-card {
+.metric-card,
+.summary-card {
   background: #f8f9ff;
   border: 2px solid #f0eaff;
   border-left: 6px solid #2ecc71;
@@ -343,20 +448,37 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   transition: transform 0.2s ease;
 }
-.metric-card:hover {
+
+.metric-card:hover,
+.summary-card:hover {
   transform: translateY(-2px);
 }
+
 .metric-label {
   display: block;
   font-size: 0.9rem;
   color: #6a2edb;
   margin-bottom: 0.35rem;
 }
+
 .metric-value {
-  font-size: 1.4rem;
+  font-size: 0.4rem;
   font-weight: 800;
   color: #2ecc71;
 }
+
+.summary-card h2, 
+.summary-card h3 {
+  font-size: 1.1rem;      /* smaller title */
+  margin-bottom: 0.3rem;
+}
+
+.summary-card p {
+  font-size: 1rem;        /* normal number size */
+  margin-top: 0.4rem;
+}
+
+
 
 /* Back to Top button */
 #backToTop {
@@ -376,3 +498,4 @@ body {
 #backToTop:hover {
   background: #2ecc71;
 }
+
