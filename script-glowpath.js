@@ -592,6 +592,16 @@ document.addEventListener('DOMContentLoaded', () => {
   allWorkouts = loadWorkouts();
   refreshView();
   setupBackToTop();
+  // Profile page workout reminder: only when there are no workouts stored yet
+  const insightsSection = document.querySelector('#insightsSection');
+  if (insightsSection && Array.isArray(allWorkouts) && allWorkouts.length === 0) {
+    const wantsToAddFirst = window.confirm(
+      'You have no workouts recorded yet. Would you like to upload or add your first workout now?'
+  );
+  if (wantsToAddFirst) {
+    window.location.href = 'index-glowpath.html#manual-input';
+  }
+}
 
   // Manual form submit
   if (form) {
