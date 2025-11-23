@@ -177,6 +177,9 @@ function updateActivityFilterOptions(workouts) {
   const select = $('#filterActivity');
   if (!select) return;
 
+  // remember what is currently selected (default to "all")
+  const currentValue = select.value || 'all';
+
   const existing = new Set();
   workouts.forEach((w) => {
     if (w.activity) existing.add(w.activity);
@@ -184,13 +187,26 @@ function updateActivityFilterOptions(workouts) {
 
   // reset options (keep "all" as first)
   select.innerHTML = '<option value="all">All activities</option>';
-  Array.from(existing).sort().forEach((act) => {
-    const opt = document.createElement('option');
-    opt.value = act;
-    opt.textContent = act;
-    select.appendChild(opt);
-  });
+
+  Array.from(existing)
+    .sort()
+    .forEach((act) => {
+      const opt = document.createElement('option');
+      opt.value = act;
+      opt.textContent = act;
+      select.appendChild(opt);
+    });
+
+  // restore the previous selection if it still exists,
+  // otherwise fall back to "all"
+  const values = Array.from(select.options).map((o) => o.value);
+  if (values.includes(currentValue)) {
+    select.value = currentValue;
+  } else {
+    select.value = 'all';
+  }
 }
+
 
 function applyFilters(list) {
   let result = [...list];
@@ -402,12 +418,15 @@ function updateInsights(workouts) {
   const compareEl = $('#insights-compare-weeks');
   const reminderEl = $('#insights-reminder');
 
+  // If we are not on the Profile page, just exit
   if (!summaryEl || !topActivityEl || !avgWeekEl || !compareEl || !reminderEl) {
     return;
   }
 
-  if (!workouts.length) {
-    summaryEl.textContent = 'No workouts yet. Import a CSV or add a workout to see insights.';
+  // No data at all
+  if (!workouts || !workouts.length) {
+    summaryEl.textContent =
+      'No workouts yet. Import a CSV or add a workout to see insights.';
     topActivityEl.textContent = '';
     avgWeekEl.textContent = '';
     compareEl.textContent = '';
@@ -415,6 +434,7 @@ function updateInsights(workouts) {
     return;
   }
 
+  // Sort workouts by date (oldest → newest)
   const sorted = [...workouts].sort((a, b) => {
     const da = parseDate(a.date);
     const db = parseDate(b.date);
@@ -423,35 +443,53 @@ function updateInsights(workouts) {
 
   const firstDate = parseDate(sorted[0].date);
   const lastDate = parseDate(sorted[sorted.length - 1].date);
-  if (!firstDate || !lastDate) return;
+  if (!firstDate || !lastDate) {
+    return;
+  }
 
-  const oneDayMs = 24 * 60 * 60 * 1000;
+  // Define last week (last 7 recorded days) and previous week (7 days before that)
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   const lastWeekEnd = lastDate;
-  const lastWeekStart = new Date(lastWeekEnd.getTime() - 6 * oneDayMs);
-  const prevWeekEnd = new Date(lastWeekStart.getTime() - oneDayMs);
-  const prevWeekStart = new Date(prevWeekEnd.getTime() - 6 * oneDayMs);
+  const lastWeekStart = new Date(lastWeekEnd.getTime() - 6 * ONE_DAY_MS);
+  const prevWeekEnd = new Date(lastWeekStart.getTime() - ONE_DAY_MS);
+  const prevWeekStart = new Date(prevWeekEnd.getTime() - 6 * ONE_DAY_MS);
 
   const inRange = (d, start, end) => d && d >= start && d <= end;
 
-  const lastWeek = sorted.filter((w) => inRange(parseDate(w.date), lastWeekStart, lastWeekEnd));
-  const prevWeek = sorted.filter((w) => inRange(parseDate(w.date), prevWeekStart, prevWeekEnd));
+  const lastWeek = sorted.filter((w) =>
+    inRange(parseDate(w.date), lastWeekStart, lastWeekEnd)
+  );
+  const prevWeek = sorted.filter((w) =>
+    inRange(parseDate(w.date), prevWeekStart, prevWeekEnd)
+  );
 
-  const lastWeekDuration = lastWeek.reduce((s, w) => s + Number(w.duration || 0), 0);
-  const lastWeekCalories = lastWeek.reduce((s, w) => s + Number(w.calories || 0), 0);
+  const lastWeekDuration = lastWeek.reduce(
+    (sum, w) => sum + Number(w.duration || 0),
+    0
+  );
+  const lastWeekCalories = lastWeek.reduce(
+    (sum, w) => sum + Number(w.calories || 0),
+    0
+  );
   const lastWeekCount = lastWeek.length;
 
-  const prevWeekDuration = prevWeek.reduce((s, w) => s + Number(w.duration || 0), 0);
+  const prevWeekDuration = prevWeek.reduce(
+    (sum, w) => sum + Number(w.duration || 0),
+    0
+  );
 
+  // 1) Weekly summary (this week only)
   summaryEl.textContent =
-    `In the last 7 days you logged ${lastWeekCount} workouts, ` +
+    `In the last 7 recorded days you logged ${lastWeekCount} workout(s), ` +
     `${lastWeekDuration} minutes and ${lastWeekCalories} calories.`;
 
-  // top activity overall
+  // 2) Top activity overall (all data)
   const counts = {};
   workouts.forEach((w) => {
     if (!w.activity) return;
     counts[w.activity] = (counts[w.activity] || 0) + 1;
   });
+
   let topActivity = null;
   let topCount = 0;
   Object.entries(counts).forEach(([act, count]) => {
@@ -460,40 +498,53 @@ function updateInsights(workouts) {
       topActivity = act;
     }
   });
+
   if (topActivity) {
-    topActivityEl.textContent = `Your most frequent activity is ${topActivity} (${topCount} workouts).`;
+    topActivityEl.textContent =
+      `Your most frequent activity is ${topActivity} ` +
+      `(${topCount} workout${topCount !== 1 ? 's' : ''}).`;
   } else {
     topActivityEl.textContent = '';
   }
 
-  // average per week overall
-  const totalDuration = workouts.reduce((s, w) => s + Number(w.duration || 0), 0);
+  // 3) Average minutes per week across ALL data
+  const totalDuration = workouts.reduce(
+    (sum, w) => sum + Number(w.duration || 0),
+    0
+  );
   const totalDays =
-    Math.round((lastDate.getTime() - firstDate.getTime()) / oneDayMs) + 1;
+    Math.round((lastDate.getTime() - firstDate.getTime()) / ONE_DAY_MS) + 1;
   const weeks = Math.max(1, totalDays / 7);
   const avgPerWeek = Math.round((totalDuration / weeks) * 10) / 10;
-  avgWeekEl.textContent = `On average you do about ${avgPerWeek} minutes of activity per week.`;
 
-  // compare this week to previous
+  avgWeekEl.textContent =
+    `On average you do about ${avgPerWeek} minutes of activity per week.`;
+
+  // 4) Compare this week to previous week
   if (prevWeek.length > 0) {
     const diff = lastWeekDuration - prevWeekDuration;
     if (diff > 0) {
-      compareEl.textContent = `That is ${diff} more minutes than the previous week. Nice progress.`;
+      compareEl.textContent =
+        `That is ${diff} more minute${diff !== 1 ? 's' : ''} than the previous week. Nice progress.`;
     } else if (diff < 0) {
-      compareEl.textContent = `That is ${Math.abs(diff)} fewer minutes than the previous week.`;
+      const abs = Math.abs(diff);
+      compareEl.textContent =
+        `That is ${abs} fewer minute${abs !== 1 ? 's' : ''} than the previous week.`;
     } else {
-      compareEl.textContent = 'Your weekly duration is the same as the previous week.';
+      compareEl.textContent =
+        'Your weekly duration is the same as the previous week.';
     }
   } else {
-    compareEl.textContent = 'Not enough data from the previous week to compare yet.';
+    compareEl.textContent =
+      'Not enough data from the previous week to compare yet.';
   }
 
-  // simple reminder based on 150 min target
-  const goal = 150; // minutes per week
-  if (lastWeekDuration < goal) {
+  // 5) Simple “AI” reminder based on 150 minutes/week goal
+  const GOAL = 150; // minutes per week
+  if (lastWeekDuration < GOAL) {
     reminderEl.textContent =
       `You recorded ${lastWeekDuration} minutes this week. ` +
-      `A common goal is ${goal} minutes. Consider adding another workout.`;
+      `A common goal is ${GOAL} minutes. Consider adding another workout.`;
   } else {
     reminderEl.textContent =
       'You have reached or passed 150 minutes of activity in the last 7 days. Keep it up.';
@@ -521,8 +572,9 @@ function refreshView() {
   renderTable(filteredWorkouts);
   updateSummary(filteredWorkouts);
   renderCharts(filteredWorkouts);
-  updateInsights(filteredWorkouts);
+  updateInsights(filteredWorkouts);   // ← keep this line
 }
+
 
 // ---------- Main init ----------
 
@@ -642,14 +694,7 @@ document.addEventListener('DOMContentLoaded', () => {
       refreshView();
     });
   }
-
-  // Live update when activity filter changes
-  const filterActivity = $('#filterActivity');
-  if (filterActivity) {
-    filterActivity.addEventListener('change', () => {
-      refreshView();
-    });
-  }
+  
 
   // Export CSV
   if (exportBtn) {
