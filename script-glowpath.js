@@ -298,110 +298,115 @@ function renderCharts(workouts) {
   const caloriesCanvas = $('#caloriesChart');
   const loadingEl = $('#chartLoading');
 
-  if (!durationCanvas || !stepsCanvas || !caloriesCanvas) {
+  if (loadingEl) loadingEl.style.display = 'block';
+
+  if (!durationCanvas || !stepsCanvas || !caloriesCanvas || typeof Chart === 'undefined') {
+    if (loadingEl) loadingEl.style.display = 'none';
     return;
   }
 
-  // Show loading text and hide charts while "generating"
-  if (loadingEl) {
-    loadingEl.textContent = 'Generating data...';
-    loadingEl.style.display = 'block';
+  // use the workouts array directly for labels, and format as DD/MM/YYYY
+  const labels = workouts.map((w) => formatDisplayDate(w.date));
+  const durations = workouts.map((w) => Number(w.duration || 0));
+  const steps = workouts.map((w) => Number(w.steps || 0));
+  const calories = workouts.map((w) => Number(w.calories || 0));
+
+  const hasData =
+    workouts.length > 0 &&
+    (durations.some((v) => v > 0) || steps.some((v) => v > 0) || calories.some((v) => v > 0));
+
+  if (!hasData) {
+    destroyCharts();
+    if (loadingEl) loadingEl.style.display = 'none';
+    return;
   }
-  durationCanvas.style.opacity = '0';
-  stepsCanvas.style.opacity = '0';
-  caloriesCanvas.style.opacity = '0';
 
-  const dailyStats = computeDailyStats(workouts);
-  const labels = dailyStats.map((d) => formatDisplayDate(d.date.toISOString()));
-  const durationData = dailyStats.map((d) => d.duration);
-  const stepsData = dailyStats.map((d) => d.steps);
-  const caloriesData = dailyStats.map((d) => d.calories);
+  // Duration line chart
+  if (durationChartInstance) {
+    durationChartInstance.data.labels = labels;
+    durationChartInstance.data.datasets[0].data = durations;
+    durationChartInstance.update();
+  } else {
+    durationChartInstance = new Chart(durationCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Duration (minutes)',
+            data: durations
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { title: { display: true, text: 'Date' } },
+          y: { title: { display: true, text: 'Minutes' } }
+        }
+      }
+    });
+  }
 
-  if (durationChartInstance) durationChartInstance.destroy();
-  if (stepsChartInstance) stepsChartInstance.destroy();
-  if (caloriesChartInstance) caloriesChartInstance.destroy();
+  // Steps bar chart
+  if (stepsChartInstance) {
+    stepsChartInstance.data.labels = labels;
+    stepsChartInstance.data.datasets[0].data = steps;
+    stepsChartInstance.update();
+  } else {
+    stepsChartInstance = new Chart(stepsCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Steps',
+            data: steps
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { title: { display: true, text: 'Date' } },
+          y: { title: { display: true, text: 'Steps' } }
+        }
+      }
+    });
+  }
 
-  durationChartInstance = new Chart(durationCanvas, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Duration (minutes)',
-          data: durationData,
-        },
-      ],
-    },
-    options: {
-      maintainAspectRatio: false,
-      responsive: true,
-      plugins: {
-        legend: { display: true },
+  // Calories line chart
+  if (caloriesChartInstance) {
+    caloriesChartInstance.data.labels = labels;
+    caloriesChartInstance.data.datasets[0].data = calories;
+    caloriesChartInstance.update();
+  } else {
+    caloriesChartInstance = new Chart(caloriesCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Calories',
+            data: calories
+          }
+        ]
       },
-      scales: {
-        x: { title: { display: true, text: 'Date' } },
-        y: { title: { display: true, text: 'Minutes' } },
-      },
-    },
-  });
+      options: {
+        responsive: true,
+        scales: {
+          x: { title: { display: true, text: 'Date' } },
+          y: { title: { display: true, text: 'Calories' } }
+        }
+      }
+    });
+  }
 
-  stepsChartInstance = new Chart(stepsCanvas, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Steps',
-          data: stepsData,
-        },
-      ],
-    },
-    options: {
-      maintainAspectRatio: false,
-      responsive: true,
-      plugins: {
-        legend: { display: true },
-      },
-      scales: {
-        x: { title: { display: true, text: 'Date' } },
-        y: { title: { display: true, text: 'Steps' } },
-      },
-    },
-  });
-
-  caloriesChartInstance = new Chart(caloriesCanvas, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Calories',
-          data: caloriesData,
-        },
-      ],
-    },
-    options: {
-      maintainAspectRatio: false,
-      responsive: true,
-      plugins: {
-        legend: { display: true },
-      },
-      scales: {
-        x: { title: { display: true, text: 'Date' } },
-        y: { title: { display: true, text: 'Calories' } },
-      },
-    },
-  });
-
-  // After 2 seconds, hide loading text and reveal charts
-  setTimeout(() => {
-    if (loadingEl) {
+  if (loadingEl) {
+    setTimeout(() => {
       loadingEl.style.display = 'none';
-    }
-    durationCanvas.style.opacity = '1';
-    stepsCanvas.style.opacity = '1';
-    caloriesCanvas.style.opacity = '1';
-  }, 2000);
+    }, 150);
+  }
 }
 
 // ---------- Weekly insights ----------
