@@ -575,6 +575,51 @@ function refreshView() {
   updateInsights(filteredWorkouts);   // ← keep this line
 }
 
+// AI stuff
+
+async function callGlowpathLLM(summaryText) {
+  const apiKey = "PUT THE API KEY HERE OR AI WONT WORK"; // <- put your Groq key here
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        messages: [
+          {
+            role: "system",
+            content: "You are a friendly fitness coach. Give concise, helpful tips."
+          },
+          {
+            role: "user",
+            content: `Here is my current filtered workout summary: ${summaryText}.
+                      Give me 2 short sentences of personalised feedback.`
+          }
+        ],
+        max_tokens: 150
+      })
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Groq HTTP error", res.status, text);
+      return `AI service error (${res.status}): ${text}`;
+    }
+
+    const data = await res.json();
+    return data.choices[0].message.content.trim();
+
+  } catch (err) {
+    console.error("Groq fetch error", err);
+    return "Could not reach AI right now.";
+  }
+}
+
+
 
 // ---------- Main init ----------
 
@@ -710,24 +755,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const tableBtn = document.getElementById("toggleTableBtn");
   const chartsBtn = document.getElementById("toggleChartsBtn");
 
-// TABLE TOGGLE
-tableBtn.addEventListener("click", () => {
-  const isVisible = tableSection.style.display !== "none";
-  tableSection.style.display = isVisible ? "none" : "block";
-  tableBtn.textContent = isVisible ? "Show table" : "Hide table";
-});
+    if (toggleChartsBtn && tableSection && chartsSection) {
+      toggleChartsBtn.addEventListener('click', () => {
+        tableSection.style.display = 'none';
+        chartsSection.style.display = 'block';
+      });
+    }
 
-// CHARTS TOGGLE
-chartsBtn.addEventListener("click", () => {
-  const isVisible = chartsSection.style.display !== "none";
-  chartsSection.style.display = isVisible ? "none" : "block";
-  chartsBtn.textContent = isVisible ? "Show charts" : "Hide charts";
-});
+    if (tableSection) tableSection.style.display = 'block';
+    if (chartsSection) chartsSection.style.display = 'none';
+    
+    const aiBtn = $('#aiInsightBtn');
+    const aiText = $('#aiInsightText');
 
-// default state (optional)
-tableSection.style.display = "none";
-chartsSection.style.display = "none";
+    if (aiBtn && aiText) {
+      aiBtn.addEventListener('click', async () => {
+        const totalWorkouts = filteredWorkouts.length;
+        const totalMinutes = filteredWorkouts.reduce(
+          (s, w) => s + Number(w.duration || 0),
+          0
+        );
+        const totalCalories = filteredWorkouts.reduce(
+          (s, w) => s + Number(w.calories || 0),
+          0
+        );
 
+        const summary = `Workouts: ${totalWorkouts}, minutes: ${totalMinutes}, calories: ${totalCalories}.`;
 
-   
+        aiText.textContent = "Thinking...";
+        const reply = await callGlowpathLLM(summary);
+        aiText.textContent = reply;
+      });
+  }
+
 });
