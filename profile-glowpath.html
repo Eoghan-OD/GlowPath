@@ -65,6 +65,8 @@
     <!-- Filters and sorting -->
     <section class="glowpath-section" id="filters">
       <h2>Filter and sort workouts</h2>
+
+      <!-- row with four equal inputs -->
       <div class="filter-row">
         <label>
           Activity
@@ -93,25 +95,26 @@
             <option value="calories-desc">Calories (high to low)</option>
           </select>
         </label>
+      </div>
 
+      <!-- row with three equal buttons under the inputs -->
+      <div class="filter-actions">
         <button id="applyFilterBtn" type="button" class="glowpath-button">
           Apply filters
         </button>
-         <button id="toggleTableBtn" class="glowpath-button">Show table</button>
-        <button id="toggleChartsBtn" class="glowpath-button">Show charts</button>
+        <button id="toggleTableBtn" type="button" class="glowpath-button">
+          Show table
+        </button>
+        <button id="toggleChartsBtn" type="button" class="glowpath-button">
+          Show charts
+        </button>
       </div>
     </section>
+
 
     <!-- Recorded workouts table -->
     <section class="glowpath-section" id="data-table">
       <h2>Recorded workouts</h2>
-
-      <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
-        <button id="clearDataBtn" type="button" class="glowpath-button">Clear recorded workouts</button>
-        <button id="exportCsvBtn" type="button" class="glowpath-button">Export filtered workouts to CSV</button>
-       
-      </div>
-
       <table id="workoutTable" aria-describedby="summary-panel">
         <thead>
           <tr>
@@ -124,7 +127,13 @@
         </thead>
         <tbody></tbody>
       </table>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+          <button id="clearDataBtn" type="button" class="glowpath-button">Clear recorded workouts</button>
+          <button id="exportCsvBtn" type="button" class="glowpath-button">Export filtered workouts to CSV</button>
+        </div>
     </section>
+
+
 
     <!-- Charts (visualisation) -->
     <section class="glowpath-section" id="data-visualisation">
