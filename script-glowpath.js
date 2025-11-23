@@ -575,6 +575,51 @@ function refreshView() {
   updateInsights(filteredWorkouts);   // ← keep this line
 }
 
+// AI stuff
+
+async function callGlowpathLLM(summaryText) {
+  const apiKey = "PUT THE API KEY HERE OR AI WONT WORK"; // <- put your Groq key here
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        messages: [
+          {
+            role: "system",
+            content: "You are a friendly fitness coach. Give concise, helpful tips."
+          },
+          {
+            role: "user",
+            content: `Here is my current filtered workout summary: ${summaryText}.
+                      Give me 2 short sentences of personalised feedback.`
+          }
+        ],
+        max_tokens: 150
+      })
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Groq HTTP error", res.status, text);
+      return `AI service error (${res.status}): ${text}`;
+    }
+
+    const data = await res.json();
+    return data.choices[0].message.content.trim();
+
+  } catch (err) {
+    console.error("Groq fetch error", err);
+    return "Could not reach AI right now.";
+  }
+}
+
+
 
 // ---------- Main init ----------
 
@@ -592,16 +637,6 @@ document.addEventListener('DOMContentLoaded', () => {
   allWorkouts = loadWorkouts();
   refreshView();
   setupBackToTop();
-  // Profile page workout reminder: only when there are no workouts stored yet
-  const insightsSection = document.querySelector('#insightsSection');
-  if (insightsSection && Array.isArray(allWorkouts) && allWorkouts.length === 0) {
-    const wantsToAddFirst = window.confirm(
-      'You have no workouts recorded yet. Would you like to upload or add your first workout now?'
-  );
-  if (wantsToAddFirst) {
-    window.location.href = 'index-glowpath.html#manual-input';
-  }
-}
 
   // Manual form submit
   if (form) {
@@ -736,4 +771,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tableSection) tableSection.style.display = 'block';
     if (chartsSection) chartsSection.style.display = 'none';
     }
+    
+    // GPT RESPONSE
+
+    const aiBtn = $('#aiInsightBtn');
+    const aiText = $('#aiInsightText');
+
+    if (aiBtn && aiText) {
+      aiBtn.addEventListener('click', async () => {
+        // build a short text summary from the currently filtered workouts
+        const totalWorkouts = filteredWorkouts.length;
+        const totalMinutes = filteredWorkouts.reduce(
+          (s, w) => s + Number(w.duration || 0),
+          0
+        );
+        const totalCalories = filteredWorkouts.reduce(
+          (s, w) => s + Number(w.calories || 0),
+          0
+        );
+
+        const summary = `Workouts: ${totalWorkouts}, minutes: ${totalMinutes}, calories: ${totalCalories}.`;
+
+        aiText.textContent = "Thinking...";
+        const reply = await callGlowpathLLM(summary);
+        aiText.textContent = reply;
+      });
+  }
+
 });
