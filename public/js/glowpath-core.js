@@ -127,7 +127,6 @@ function updateSummary(workouts) {
 }
 
 // ---------- CSV parsing ----------
-
 function parseCSV(text) {
   const lines = text
     .split(/\r?\n/)
@@ -138,7 +137,7 @@ function parseCSV(text) {
     return [];
   }
 
-  // Auto detect delimiter from first row
+  // auto detect delimiter from first row
   const firstLine = lines[0];
   const candidates = [",", ";", "\t"];
   let delimiter = ",";
@@ -154,26 +153,39 @@ function parseCSV(text) {
 
   const headerRaw = firstLine.split(delimiter).map((h) => h.trim());
   const header = headerRaw.map((h) => h.toLowerCase());
+  const headerNorm = headerRaw.map((h) =>
+    h.toLowerCase().replace(/[^a-z0-9]/g, "")
+  );
 
-  // Find column indices
+  const findIndex = (candidates) => {
+    // try exact lower case match
+    for (const c of candidates) {
+      const idx = header.indexOf(c);
+      if (idx !== -1) return idx;
+    }
+    // try on normalised headers and "contains"
+    for (let i = 0; i < headerNorm.length; i++) {
+      const h = headerNorm[i];
+      for (const c of candidates) {
+        if (h === c || h.includes(c)) return i;
+      }
+    }
+    return -1;
+  };
+
   const idx = {
-    date:
-      header.indexOf("date") >= 0
-        ? header.indexOf("date")
-        : header.indexOf("activitydate"),
-    activity:
-      header.indexOf("activity") >= 0
-        ? header.indexOf("activity")
-        : header.indexOf("activitytype"),
-    duration:
-      header.indexOf("duration") >= 0
-        ? header.indexOf("duration")
-        : header.indexOf("totalminutes"),
-    calories:
-      header.indexOf("calories") >= 0
-        ? header.indexOf("calories")
-        : header.indexOf("caloriesburned"),
-    steps: header.indexOf("steps") >= 0 ? header.indexOf("steps") : -1,
+    date: findIndex(["date", "activitydate"]),
+    activity: findIndex(["activity", "activitytype"]),
+    duration: findIndex([
+      "duration",
+      "minutes",
+      "durationmin",
+      "durationmins",
+      "totalminutes",
+      "totaltime"
+    ]),
+    calories: findIndex(["calories", "caloriesburned"]),
+    steps: findIndex(["steps"])
   };
 
   const rows = [];
@@ -189,13 +201,15 @@ function parseCSV(text) {
       date: idx.date >= 0 ? get(idx.date) : todayISO(),
       activity:
         idx.activity >= 0 ? get(idx.activity) || "Unknown" : "Unknown",
-      duration: idx.duration >= 0 ? Number(get(idx.duration) || 0) : 0,
-      calories: idx.calories >= 0 ? Number(get(idx.calories) || 0) : 0,
+      duration:
+        idx.duration >= 0 ? Number(get(idx.duration) || 0) : 0,
+      calories:
+        idx.calories >= 0 ? Number(get(idx.calories) || 0) : 0,
       steps: idx.steps >= 0 ? Number(get(idx.steps) || 0) : "",
-      source: "csv",
+      source: "csv"
     };
 
-    // Skip completely empty lines
+    // skip completely empty lines
     if (
       !entry.date &&
       !entry.activity &&
@@ -210,6 +224,7 @@ function parseCSV(text) {
 
   return rows;
 }
+
 
 // ---------- Filters, sorting, export ----------
 
