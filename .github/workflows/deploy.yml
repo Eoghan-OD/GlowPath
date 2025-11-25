@@ -22,4 +22,5 @@ jobs:
             cd /home/ec2-user/GlowPath
             git pull
             npm install --production
-            pm2 restart glowpath
+            pm2 restart server
+
