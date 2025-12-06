@@ -54,7 +54,7 @@ app.post("/api/chat", async (req, res) => {
     if (hasOffTopic) {
       return res.json({
         success: true,
-        response: "I'm GlowPath's fitness coach and can only help with workout and health-related questions. Ask me about your fitness progress, exercise advice, or nutrition guidance! 💪"
+        response: "Hey! I only help with fitness stuff. What can I help you with for your workouts?"
       });
     }
 
@@ -72,45 +72,54 @@ app.post("/api/chat", async (req, res) => {
     
     if (workoutData && (workoutData.totalWorkouts > 0 || workoutData.recentWorkouts.length > 0)) {
       contextMessage = `User's workout data:\n`;
-      contextMessage += `- Total workouts: ${workoutData.totalWorkouts}\n`;
-      contextMessage += `- Total duration: ${workoutData.totalDuration} minutes\n`;
-      contextMessage += `- Total calories burned: ${workoutData.totalCalories}\n`;
-      contextMessage += `- Average workout duration: ${workoutData.averageDuration} minutes\n`;
+      contextMessage += `Total workouts: ${workoutData.totalWorkouts}\n`;
+      contextMessage += `Total duration: ${workoutData.totalDuration} minutes\n`;
+      contextMessage += `Total calories burned: ${workoutData.totalCalories}\n`;
+      contextMessage += `Average workout duration: ${workoutData.averageDuration} minutes\n`;
       
       if (workoutData.recentWorkouts && workoutData.recentWorkouts.length > 0) {
         contextMessage += `\nRecent workout entries:\n`;
         workoutData.recentWorkouts.forEach((w, i) => {
-          contextMessage += `${i + 1}. ${w.date}: ${w.activity} - ${w.duration} min, ${w.calories} cal`;
+          contextMessage += `${i + 1}. ${w.date}: ${w.activity}, ${w.duration} min, ${w.calories} cal`;
           if (w.steps > 0) contextMessage += `, ${w.steps} steps`;
           contextMessage += `\n`;
         });
       }
       
-      contextMessage += `\nUser's question: ${userMessage}`;
+      contextMessage += `\nUser question: ${userMessage}`;
     }
 
     // Build messages with conversation history
     const messages = [
       {
         role: "system",
-        content: `You are a specialized fitness coach for GlowPath, a workout tracking app. 
+        content: `You are a friendly fitness coach chatting with a client on GlowPath.
 
-CRITICAL RULES:
-- Keep responses VERY brief (2-3 sentences max)
-- Be direct and conversational, like texting a friend
-- ONLY answer fitness, exercise, workout, nutrition, and health questions
-- When workout data is provided, reference their ACTUAL numbers
-- Be encouraging but concise
-- If asked off-topic, redirect briefly to fitness
+CRITICAL STYLE RULES:
+- Maximum 40 words per response
+- Write like you're texting a friend
+- Ask follow-up questions instead of giving long advice
+- Be conversational and curious about their goals
+- Use ONLY plain text (no asterisks, dashes, bullets, or special characters)
+- Never cite sources or references
+- Keep it to 1-2 short sentences
 
-Your expertise: workout analysis, exercise form, nutrition, goal setting, recovery, motivation
+YOUR APPROACH:
+- When they share data, acknowledge it briefly then ask what they want to work on
+- Instead of listing advice, ask what their goal is
+- Be encouraging but always curious
+- Ask about their preferences, challenges, or what they enjoyed
 
-Examples of good responses:
-- "Nice! 15 workouts in shows great consistency. Try adding more strength training to balance your cardio."
-- "450 minutes total is solid! Aim for 60-min sessions to boost endurance."
-- "I see you're focusing on running. Mix in some weights 2x/week for better results."
+GOOD examples:
+"131 workouts is awesome! What are you working towards right now?"
+"I see lots of variety in your training. What's your main fitness goal?"
+"Nice work on the consistency! Are you feeling good or need to switch things up?"
+"That's solid progress. What part of your routine do you want to focus on?"
 
-Keep it short, friendly, and actionable!`
+BAD examples (too long, too much info):
+"Your workout durations are long which suggests endurance focus. Calorie burn is high but make sure you're recovering."
+
+Remember: Ask questions, don't lecture. Keep it under 40 words.`
       },
       ...conversationHistory,
       {
@@ -128,8 +137,8 @@ Keep it short, friendly, and actionable!`
       body: JSON.stringify({
         model: "sonar-pro",
         messages: messages,
-        temperature: 0.7,
-        max_tokens: 150,
+        temperature: 0.8,
+        max_tokens: 80,
         top_p: 0.9
       })
     });
@@ -139,12 +148,23 @@ Keep it short, friendly, and actionable!`
       console.error("Perplexity API error:", errorText);
       return res.status(response.status).json({ 
         success: false,
-        error: "Sorry, I'm having trouble connecting right now. Please try again." 
+        error: "Sorry, I'm having trouble connecting right now. Try again?"
       });
     }
 
     const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    let aiResponse = data.choices[0].message.content;
+
+    // Clean up response - remove special characters
+    aiResponse = aiResponse
+      .replace(/\*/g, '')           // Remove asterisks
+      .replace(/—/g, '')            // Remove em dashes
+      .replace(/–/g, '')            // Remove en dashes
+      .replace(/\*/g, '')           // Remove stars
+      .replace(/•/g, '')            // Remove bullets
+      .replace(/[\[\]]/g, '')       // Remove brackets
+      .replace(/\s+/g, ' ')         // Clean extra spaces
+      .trim();
 
     res.json({
       success: true,
@@ -155,7 +175,7 @@ Keep it short, friendly, and actionable!`
     console.error("Error in /api/chat:", err);
     res.status(500).json({ 
       success: false,
-      error: "Sorry, something went wrong. Please try again." 
+      error: "Oops, something went wrong. Try again?"
     });
   }
 });
