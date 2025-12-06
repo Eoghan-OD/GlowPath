@@ -21,60 +21,78 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "home-glowpath.html"));
 });
 
-// Validation function to keep AI fitness-focused
-function isWorkoutRelated(text) {
-  const fitnessKeywords = [
-    'workout', 'exercise', 'fitness', 'gym', 'training', 'cardio', 'strength',
-    'running', 'weight', 'muscle', 'calories', 'nutrition', 'diet', 'health',
-    'reps', 'sets', 'push', 'pull', 'squat', 'bench', 'deadlift', 'protein',
-    'recovery', 'rest', 'stretch', 'flexibility', 'endurance', 'performance'
-  ];
-  
-  const offTopicKeywords = [
-    'weather', 'news', 'politics', 'stock', 'code', 'programming', 
-    'javascript', 'python', 'math', 'homework', 'recipe', 'movie', 'music'
-  ];
-  
-  const lowerText = text.toLowerCase();
-  
-  // Check for explicit off-topic requests
-  const hasOffTopic = offTopicKeywords.some(keyword => lowerText.includes(keyword));
-  if (hasOffTopic) return false;
-  
-  // If it's workout summary data, always allow
-  if (lowerText.includes('workout summary') || lowerText.includes('feedback')) return true;
-  
-  // Check for fitness keywords
-  return fitnessKeywords.some(keyword => lowerText.includes(keyword));
-}
-
-// LLM proxy endpoint
+// ============================================
+// NEW: AI Chatbox Endpoint for Profile Page
+// ============================================
 app.post("/api/chat", async (req, res) => {
   try {
-    const summary = typeof req.body.summary === "string" ? req.body.summary : "";
-    const userQuestion = req.body.question || "";
+    const userMessage = req.body.message || "";
+    const conversationHistory = req.body.history || [];
 
-    if (!summary) {
-      return res.status(400).json({ error: "Missing or invalid 'summary' field" });
+    if (!userMessage) {
+      return res.status(400).json({ success: false, error: "Missing 'message' field" });
     }
 
-    // Pre-filter off-topic questions
-    if (userQuestion && !isWorkoutRelated(userQuestion)) {
+    // Simple fitness keyword check
+    const fitnessKeywords = [
+      'workout', 'exercise', 'fitness', 'gym', 'training', 'cardio', 'strength',
+      'running', 'weight', 'muscle', 'calories', 'nutrition', 'diet', 'health',
+      'reps', 'sets', 'squat', 'bench', 'deadlift', 'protein', 'coach', 'goal'
+    ];
+    
+    const offTopicKeywords = [
+      'weather', 'news', 'politics', 'stock', 'code', 'programming', 
+      'javascript', 'python', 'math', 'homework', 'movie', 'game'
+    ];
+    
+    const lowerMessage = userMessage.toLowerCase();
+    const hasOffTopic = offTopicKeywords.some(kw => lowerMessage.includes(kw));
+    
+    // Block off-topic questions
+    if (hasOffTopic) {
       return res.json({
-        choices: [{
-          message: {
-            role: "assistant",
-            content: "I'm GlowPath's fitness coach and can only help with workout and health-related questions. Please ask me about your fitness progress, exercise advice, or nutrition guidance! 💪"
-          }
-        }]
+        success: true,
+        response: "I'm GlowPath's fitness coach and can only help with workout and health-related questions. Please ask me about your fitness progress, exercise advice, or nutrition guidance! 💪"
       });
     }
 
     const apiKey = process.env.PERPLEXITY_API_KEY;
     if (!apiKey) {
       console.error("PERPLEXITY_API_KEY is not set");
-      return res.status(500).json({ error: "Server AI key not configured" });
+      return res.status(500).json({ 
+        success: false, 
+        error: "Server configuration error" 
+      });
     }
+
+    // Build messages with conversation history
+    const messages = [
+      {
+        role: "system",
+        content: `You are a specialized fitness coach for GlowPath, a workout tracking application. 
+
+STRICT GUIDELINES:
+- ONLY answer questions about fitness, exercise, workouts, nutrition, and health
+- Provide personalized, actionable fitness advice
+- Be encouraging, motivating, and supportive
+- Keep responses concise (2-4 sentences) and conversational
+- If asked about non-fitness topics, politely redirect to fitness
+
+Your expertise includes:
+- Workout planning and exercise form
+- Nutrition and diet advice
+- Progress tracking and goal setting
+- Recovery and injury prevention
+- Motivation and mental wellness related to fitness
+
+Keep your tone friendly and conversational, like a personal trainer chatting with a client.`
+      },
+      ...conversationHistory,
+      {
+        role: "user",
+        content: userMessage
+      }
+    ];
 
     const response = await fetch(PERPLEXITY_API_URL, {
       method: "POST",
@@ -84,52 +102,40 @@ app.post("/api/chat", async (req, res) => {
       },
       body: JSON.stringify({
         model: "sonar-pro",
-        messages: [
-          {
-            role: "system",
-            content: `You are a specialized fitness coach for GlowPath, a workout tracking application. 
-
-STRICT GUIDELINES:
-- ONLY answer questions about fitness, exercise, workouts, nutrition, and health
-- Analyze the provided workout data and give personalized feedback
-- Compare current week performance to previous weeks when data is available
-- Provide motivation and exercise recommendations
-- If asked about non-fitness topics, politely decline and redirect to fitness
-
-IMPORTANT: If the user asks about anything unrelated to fitness, health, or exercise, respond with:
-"I'm GlowPath's fitness coach and can only help with workout and health-related questions. Please ask me about your fitness progress, exercise advice, or nutrition guidance!"
-
-Keep responses concise (2-3 paragraphs maximum) and motivating.`
-          },
-          {
-            role: "user",
-            content: userQuestion || 
-              ("Here is my current filtered workout summary:\n\n" + summary + "\n\n" +
-               "Please provide feedback and motivation based on this data.")
-          }
-        ],
+        messages: messages,
         temperature: 0.7,
-        max_tokens: 512,
-        top_p: 0.9,
-        frequency_penalty: 0.5
+        max_tokens: 300,
+        top_p: 0.9
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Perplexity API error:", errorText);
-      return res.status(response.status).json({ error: "AI service error: " + errorText });
+      return res.status(response.status).json({ 
+        success: false,
+        error: "Sorry, I'm having trouble connecting right now. Please try again." 
+      });
     }
 
     const data = await response.json();
-    res.json(data);
+    const aiResponse = data.choices[0].message.content;
+
+    res.json({
+      success: true,
+      response: aiResponse
+    });
 
   } catch (err) {
     console.error("Error in /api/chat:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ 
+      success: false,
+      error: "Sorry, something went wrong. Please try again." 
+    });
   }
 });
 
+// Endpoint
 app.listen(PORT, () => {
   console.log(`GlowPath server running on port ${PORT}`);
 });
