@@ -54,7 +54,7 @@ app.post("/api/chat", async (req, res) => {
     if (hasOffTopic) {
       return res.json({
         success: true,
-        response: "I'm GlowPath's fitness coach and can only help with workout and health-related questions. Please ask me about your fitness progress, exercise advice, or nutrition guidance! 💪"
+        response: "I'm GlowPath's fitness coach and can only help with workout and health-related questions. Ask me about your fitness progress, exercise advice, or nutrition guidance! 💪"
       });
     }
 
@@ -78,7 +78,7 @@ app.post("/api/chat", async (req, res) => {
       contextMessage += `- Average workout duration: ${workoutData.averageDuration} minutes\n`;
       
       if (workoutData.recentWorkouts && workoutData.recentWorkouts.length > 0) {
-        contextMessage += `\nRecent workouts:\n`;
+        contextMessage += `\nRecent workout entries:\n`;
         workoutData.recentWorkouts.forEach((w, i) => {
           contextMessage += `${i + 1}. ${w.date}: ${w.activity} - ${w.duration} min, ${w.calories} cal`;
           if (w.steps > 0) contextMessage += `, ${w.steps} steps`;
@@ -93,33 +93,24 @@ app.post("/api/chat", async (req, res) => {
     const messages = [
       {
         role: "system",
-        content: `You are a specialized fitness coach for GlowPath, a workout tracking application. 
+        content: `You are a specialized fitness coach for GlowPath, a workout tracking app. 
 
-STRICT GUIDELINES:
-- ONLY answer questions about fitness, exercise, workouts, nutrition, and health
-- When workout data is provided, analyze it and give SPECIFIC, PERSONALIZED advice
-- Reference their actual workout numbers when giving feedback (e.g., "I see you've done 15 workouts...")
-- Be encouraging, motivating, and supportive
-- Keep responses concise (3-5 sentences) and conversational
-- If asked about non-fitness topics, politely redirect to fitness
+CRITICAL RULES:
+- Keep responses VERY brief (2-3 sentences max)
+- Be direct and conversational, like texting a friend
+- ONLY answer fitness, exercise, workout, nutrition, and health questions
+- When workout data is provided, reference their ACTUAL numbers
+- Be encouraging but concise
+- If asked off-topic, redirect briefly to fitness
 
-Your expertise includes:
-- Analyzing workout patterns and progress
-- Workout planning and exercise form
-- Nutrition and diet advice tailored to their activity level
-- Progress tracking and goal setting
-- Recovery and injury prevention
-- Motivation based on their actual achievements
+Your expertise: workout analysis, exercise form, nutrition, goal setting, recovery, motivation
 
-When you see workout data, USE IT in your response. Examples:
-- "I see you've done 15 workouts totaling 450 minutes - that's great consistency!"
-- "Your recent focus on running is showing progress..."
-- "Based on your 2500 calories burned across 10 workouts, you're very active..."
-- "I notice your average workout is 30 minutes - perfect for building endurance..."
+Examples of good responses:
+- "Nice! 15 workouts in shows great consistency. Try adding more strength training to balance your cardio."
+- "450 minutes total is solid! Aim for 60-min sessions to boost endurance."
+- "I see you're focusing on running. Mix in some weights 2x/week for better results."
 
-If there's NO workout data, give general fitness advice but encourage them to start tracking.
-
-Keep your tone friendly and conversational, like a personal trainer who knows their client's history.`
+Keep it short, friendly, and actionable!`
       },
       ...conversationHistory,
       {
@@ -138,7 +129,7 @@ Keep your tone friendly and conversational, like a personal trainer who knows th
         model: "sonar-pro",
         messages: messages,
         temperature: 0.7,
-        max_tokens: 400,
+        max_tokens: 150,
         top_p: 0.9
       })
     });
@@ -168,6 +159,10 @@ Keep your tone friendly and conversational, like a personal trainer who knows th
     });
   }
 });
+
+// ============================================
+// Add any other endpoints below this line
+// ============================================
 
 app.listen(PORT, () => {
   console.log(`GlowPath server running on port ${PORT}`);

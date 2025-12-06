@@ -171,7 +171,7 @@
     }
     
     function getWorkoutData() {
-        // Try to get workout data from the page
+        // Try to get workout data from multiple sources
         let workoutSummary = {
             totalWorkouts: 0,
             totalDuration: 0,
@@ -181,43 +181,85 @@
         };
         
         try {
-            // Get stats from the page using data attributes
+            // METHOD 1: Try to get from global window.allWorkouts (most reliable)
+            if (typeof window.allWorkouts !== 'undefined' && Array.isArray(window.allWorkouts) && window.allWorkouts.length > 0) {
+                const workouts = window.allWorkouts;
+                
+                // Calculate totals
+                workoutSummary.totalWorkouts = workouts.length;
+                workoutSummary.totalDuration = workouts.reduce((sum, w) => sum + (parseInt(w.duration) || 0), 0);
+                workoutSummary.totalCalories = workouts.reduce((sum, w) => sum + (parseInt(w.calories) || 0), 0);
+                workoutSummary.averageDuration = workoutSummary.totalWorkouts > 0 
+                    ? Math.round(workoutSummary.totalDuration / workoutSummary.totalWorkouts) 
+                    : 0;
+                
+                // Get last 10 workouts for detailed analysis
+                workoutSummary.recentWorkouts = workouts.slice(-10).map(function(w) {
+                    return {
+                        date: w.date || 'Unknown',
+                        activity: w.activity || 'Unknown',
+                        duration: parseInt(w.duration) || 0,
+                        calories: parseInt(w.calories) || 0,
+                        steps: parseInt(w.steps) || 0
+                    };
+                });
+                
+                console.log('AI Widget: Loaded', workoutSummary.totalWorkouts, 'workouts from window.allWorkouts');
+                return workoutSummary;
+            }
+            
+            // METHOD 2: Try localStorage directly
+            const storedWorkouts = localStorage.getItem('glowpath_workouts');
+            if (storedWorkouts) {
+                const workouts = JSON.parse(storedWorkouts);
+                if (Array.isArray(workouts) && workouts.length > 0) {
+                    workoutSummary.totalWorkouts = workouts.length;
+                    workoutSummary.totalDuration = workouts.reduce((sum, w) => sum + (parseInt(w.duration) || 0), 0);
+                    workoutSummary.totalCalories = workouts.reduce((sum, w) => sum + (parseInt(w.calories) || 0), 0);
+                    workoutSummary.averageDuration = workoutSummary.totalWorkouts > 0 
+                        ? Math.round(workoutSummary.totalDuration / workoutSummary.totalWorkouts) 
+                        : 0;
+                    
+                    workoutSummary.recentWorkouts = workouts.slice(-10).map(function(w) {
+                        return {
+                            date: w.date || 'Unknown',
+                            activity: w.activity || 'Unknown',
+                            duration: parseInt(w.duration) || 0,
+                            calories: parseInt(w.calories) || 0,
+                            steps: parseInt(w.steps) || 0
+                        };
+                    });
+                    
+                    console.log('AI Widget: Loaded', workoutSummary.totalWorkouts, 'workouts from localStorage');
+                    return workoutSummary;
+                }
+            }
+            
+            // METHOD 3: Try to read from page stats (fallback)
             const totalWorkoutsEl = document.querySelector('[data-stat="total-workouts"]');
             const totalDurationEl = document.querySelector('[data-stat="total-duration"]');
             const totalCaloriesEl = document.querySelector('[data-stat="total-calories"]');
             
-            if (totalWorkoutsEl) workoutSummary.totalWorkouts = parseInt(totalWorkoutsEl.textContent) || 0;
-            if (totalDurationEl) workoutSummary.totalDuration = parseInt(totalDurationEl.textContent) || 0;
-            if (totalCaloriesEl) workoutSummary.totalCalories = parseInt(totalCaloriesEl.textContent) || 0;
-            
-            // Calculate average
-            if (workoutSummary.totalWorkouts > 0) {
-                workoutSummary.averageDuration = Math.round(workoutSummary.totalDuration / workoutSummary.totalWorkouts);
-            }
-            
-            // Try to get workout data from global variable
-            if (typeof window.allWorkouts !== 'undefined' && Array.isArray(window.allWorkouts)) {
-                // Get last 5 workouts
-                workoutSummary.recentWorkouts = window.allWorkouts.slice(-5).map(function(w) {
-                    return {
-                        date: w.date || 'Unknown',
-                        activity: w.activity || 'Unknown',
-                        duration: w.duration || 0,
-                        calories: w.calories || 0,
-                        steps: w.steps || 0
-                    };
-                });
-            }
-            
-            // If we have workout data, return it
-            if (workoutSummary.totalWorkouts > 0 || workoutSummary.recentWorkouts.length > 0) {
-                return workoutSummary;
+            if (totalWorkoutsEl) {
+                const totalWorkouts = parseInt(totalWorkoutsEl.textContent) || 0;
+                if (totalWorkouts > 0) {
+                    workoutSummary.totalWorkouts = totalWorkouts;
+                    workoutSummary.totalDuration = totalDurationEl ? (parseInt(totalDurationEl.textContent) || 0) : 0;
+                    workoutSummary.totalCalories = totalCaloriesEl ? (parseInt(totalCaloriesEl.textContent) || 0) : 0;
+                    workoutSummary.averageDuration = workoutSummary.totalWorkouts > 0 
+                        ? Math.round(workoutSummary.totalDuration / workoutSummary.totalWorkouts) 
+                        : 0;
+                    
+                    console.log('AI Widget: Loaded summary stats from page elements');
+                    return workoutSummary;
+                }
             }
             
         } catch (e) {
-            console.warn('Could not extract workout data:', e);
+            console.warn('AI Widget: Could not extract workout data:', e);
         }
         
+        console.log('AI Widget: No workout data found');
         return null;
     }
     
