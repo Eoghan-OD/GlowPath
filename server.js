@@ -22,11 +22,12 @@ app.get("/", (req, res) => {
 });
 
 // ============================================
-// NEW: AI Chatbox Endpoint for Profile Page
+// AI Chatbox Endpoint with Workout Data Support
 // ============================================
 app.post("/api/chat", async (req, res) => {
   try {
     const userMessage = req.body.message || "";
+    const workoutData = req.body.workoutData || null;
     const conversationHistory = req.body.history || [];
 
     if (!userMessage) {
@@ -37,12 +38,13 @@ app.post("/api/chat", async (req, res) => {
     const fitnessKeywords = [
       'workout', 'exercise', 'fitness', 'gym', 'training', 'cardio', 'strength',
       'running', 'weight', 'muscle', 'calories', 'nutrition', 'diet', 'health',
-      'reps', 'sets', 'squat', 'bench', 'deadlift', 'protein', 'coach', 'goal'
+      'reps', 'sets', 'squat', 'bench', 'deadlift', 'protein', 'coach', 'goal',
+      'progress', 'analyze', 'advice', 'motivation', 'rest', 'recovery', 'stretch'
     ];
     
     const offTopicKeywords = [
       'weather', 'news', 'politics', 'stock', 'code', 'programming', 
-      'javascript', 'python', 'math', 'homework', 'movie', 'game'
+      'javascript', 'python', 'math', 'homework', 'movie', 'game', 'recipe'
     ];
     
     const lowerMessage = userMessage.toLowerCase();
@@ -65,6 +67,28 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
+    // Build context with workout data if available
+    let contextMessage = userMessage;
+    
+    if (workoutData && (workoutData.totalWorkouts > 0 || workoutData.recentWorkouts.length > 0)) {
+      contextMessage = `User's workout data:\n`;
+      contextMessage += `- Total workouts: ${workoutData.totalWorkouts}\n`;
+      contextMessage += `- Total duration: ${workoutData.totalDuration} minutes\n`;
+      contextMessage += `- Total calories burned: ${workoutData.totalCalories}\n`;
+      contextMessage += `- Average workout duration: ${workoutData.averageDuration} minutes\n`;
+      
+      if (workoutData.recentWorkouts && workoutData.recentWorkouts.length > 0) {
+        contextMessage += `\nRecent workouts:\n`;
+        workoutData.recentWorkouts.forEach((w, i) => {
+          contextMessage += `${i + 1}. ${w.date}: ${w.activity} - ${w.duration} min, ${w.calories} cal`;
+          if (w.steps > 0) contextMessage += `, ${w.steps} steps`;
+          contextMessage += `\n`;
+        });
+      }
+      
+      contextMessage += `\nUser's question: ${userMessage}`;
+    }
+
     // Build messages with conversation history
     const messages = [
       {
@@ -73,24 +97,34 @@ app.post("/api/chat", async (req, res) => {
 
 STRICT GUIDELINES:
 - ONLY answer questions about fitness, exercise, workouts, nutrition, and health
-- Provide personalized, actionable fitness advice
+- When workout data is provided, analyze it and give SPECIFIC, PERSONALIZED advice
+- Reference their actual workout numbers when giving feedback (e.g., "I see you've done 15 workouts...")
 - Be encouraging, motivating, and supportive
-- Keep responses concise (2-4 sentences) and conversational
+- Keep responses concise (3-5 sentences) and conversational
 - If asked about non-fitness topics, politely redirect to fitness
 
 Your expertise includes:
+- Analyzing workout patterns and progress
 - Workout planning and exercise form
-- Nutrition and diet advice
+- Nutrition and diet advice tailored to their activity level
 - Progress tracking and goal setting
 - Recovery and injury prevention
-- Motivation and mental wellness related to fitness
+- Motivation based on their actual achievements
 
-Keep your tone friendly and conversational, like a personal trainer chatting with a client.`
+When you see workout data, USE IT in your response. Examples:
+- "I see you've done 15 workouts totaling 450 minutes - that's great consistency!"
+- "Your recent focus on running is showing progress..."
+- "Based on your 2500 calories burned across 10 workouts, you're very active..."
+- "I notice your average workout is 30 minutes - perfect for building endurance..."
+
+If there's NO workout data, give general fitness advice but encourage them to start tracking.
+
+Keep your tone friendly and conversational, like a personal trainer who knows their client's history.`
       },
       ...conversationHistory,
       {
         role: "user",
-        content: userMessage
+        content: contextMessage
       }
     ];
 
@@ -104,7 +138,7 @@ Keep your tone friendly and conversational, like a personal trainer chatting wit
         model: "sonar-pro",
         messages: messages,
         temperature: 0.7,
-        max_tokens: 300,
+        max_tokens: 400,
         top_p: 0.9
       })
     });
@@ -135,7 +169,6 @@ Keep your tone friendly and conversational, like a personal trainer chatting wit
   }
 });
 
-// Endpoint
 app.listen(PORT, () => {
   console.log(`GlowPath server running on port ${PORT}`);
 });

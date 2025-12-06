@@ -6,8 +6,6 @@
   <title>GlowPath | Profile</title>
   <link rel="stylesheet" href="style-glowpath.css" />
 
-
-  
 </head>
 <body>
   <!-- Header section with logo and title -->
@@ -188,17 +186,6 @@
       <p id="insights-reminder"></p>
     </section>
 
-    <!-- AI Insight -->
-    <section class="glowpath-section" id="ai-section">
-      <h2>AI insight</h2>
-      <button id="aiInsightBtn" class="glowpath-button">
-        Generate AI summary for current filter
-      </button>
-      <p id="aiInsightText"></p>
-    </section>
-
-    <a href="index-glowpath.html" class="glowpath-button">Go to Add Workout</a>
-
     <!-- Back to top -->
     <button id="backToTop" type="button" style="display:none;">
       Back to top
@@ -257,56 +244,69 @@
     </div>
   </div>
 
- <!-- Ai Chatbox-->
-
-    <section class="ai-coach-section">
-        <div class="ai-coach-container">
-            <div class="ai-coach-header">
-                <h2>💪 Your AI Fitness Coach</h2>
-                <p>Ask me anything about fitness, workouts, or nutrition!</p>
-            </div>
-            
-            <div class="ai-chat-box">
-                <div class="chat-messages" id="aiChatMessages">
-                    <div class="message bot-message">
-                        <div class="message-content">
-                            Hey there! I'm your GlowPath fitness coach. Ask me anything about workouts, nutrition, or fitness goals! 💪
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="chat-input-wrapper">
-                    <input 
-                        type="text" 
-                        id="aiChatInput" 
-                        placeholder="Ask about workouts, nutrition, goals..." 
-                        autocomplete="off"
-                    >
-                    <button id="aiSendButton" class="ai-send-btn">
-                        Send
-                    </button>
-                </div>
-            </div>
-
-            <div class="quick-questions">
-                <p class="quick-label">Quick questions:</p>
-                <button class="quick-question-btn" data-question="How can I improve my bench press?">Improve bench press</button>
-                <button class="quick-question-btn" data-question="What's a good workout split for beginners?">Workout split</button>
-                <button class="quick-question-btn" data-question="How much protein should I eat daily?">Protein intake</button>
-                <button class="quick-question-btn" data-question="How do I stay motivated to work out?">Stay motivated</button>
-            </div>
+    <!-- AI Widget (Floating Chatbox) -->
+  <div id="aiWidget" class="ai-widget-container">
+    <!-- Floating Button (Minimized State) -->
+    <button id="aiWidgetButton" class="ai-widget-button" aria-label="Open AI Fitness Coach">
+      <span class="ai-icon">💪</span>
+      <span class="ai-button-text">AI Coach</span>
+    </button>
+    
+    <!-- Chatbox (Expanded State) -->
+    <div id="aiChatbox" class="ai-chatbox hidden">
+      <div class="ai-chatbox-header">
+        <div class="ai-header-info">
+          <span class="ai-avatar">💪</span>
+          <div>
+            <h3>GlowPath AI Coach</h3>
+            <p class="ai-status">Online</p>
+          </div>
         </div>
-    </section>
+        <button id="aiMinimizeBtn" class="ai-minimize-btn" aria-label="Minimize chat">
+          ✕
+        </button>
+      </div>
+      
+      <div class="ai-chatbox-messages" id="aiChatboxMessages">
+        <div class="message bot-message">
+          <div class="message-content">
+            Hey! I'm your AI fitness coach. I can see your workout data and give you personalized advice. Try asking:
+            <ul>
+              <li>"Analyze my recent workouts"</li>
+              <li>"Give me advice on my progress"</li>
+              <li>"What should I focus on?"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="ai-chatbox-input">
+        <input 
+          type="text" 
+          id="aiWidgetInput" 
+          placeholder="Ask about your workouts..." 
+          autocomplete="off"
+        >
+        <button id="aiWidgetSend" class="ai-send-button">
+          <span>➤</span>
+        </button>
+      </div>
+      
+      <div class="ai-quick-actions">
+        <button class="ai-quick-btn" data-action="analyze">📊 Analyze My Workouts</button>
+        <button class="ai-quick-btn" data-action="advice">💡 Give Me Advice</button>
+        <button class="ai-quick-btn" data-action="motivation">🔥 Motivate Me</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Scripts: Chart.js and shared GlowPath logic -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="js/glowpath-core.js"></script>
-  <script src="js/glowpath-ai.js"></script>
+  <script src="js/glowpath-ai-widget.js"></script>
   <script src="js/glowpath-main.js"></script>
   <!-- User account logic -->
   <script src="js/userprofile.js"></script>
-  <!-- Ai Chat -->
-   <script src="glowpath-ai-chat.js"></script>
 </body>
 </html>
 
