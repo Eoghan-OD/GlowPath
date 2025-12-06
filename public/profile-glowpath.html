@@ -257,6 +257,47 @@
     </div>
   </div>
 
+ <!-- Ai Chatbox-->
+
+    <section class="ai-coach-section">
+        <div class="ai-coach-container">
+            <div class="ai-coach-header">
+                <h2>💪 Your AI Fitness Coach</h2>
+                <p>Ask me anything about fitness, workouts, or nutrition!</p>
+            </div>
+            
+            <div class="ai-chat-box">
+                <div class="chat-messages" id="aiChatMessages">
+                    <div class="message bot-message">
+                        <div class="message-content">
+                            Hey there! I'm your GlowPath fitness coach. Ask me anything about workouts, nutrition, or fitness goals! 💪
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-wrapper">
+                    <input 
+                        type="text" 
+                        id="aiChatInput" 
+                        placeholder="Ask about workouts, nutrition, goals..." 
+                        autocomplete="off"
+                    >
+                    <button id="aiSendButton" class="ai-send-btn">
+                        Send
+                    </button>
+                </div>
+            </div>
+
+            <div class="quick-questions">
+                <p class="quick-label">Quick questions:</p>
+                <button class="quick-question-btn" data-question="How can I improve my bench press?">Improve bench press</button>
+                <button class="quick-question-btn" data-question="What's a good workout split for beginners?">Workout split</button>
+                <button class="quick-question-btn" data-question="How much protein should I eat daily?">Protein intake</button>
+                <button class="quick-question-btn" data-question="How do I stay motivated to work out?">Stay motivated</button>
+            </div>
+        </div>
+    </section>
+
   <!-- Scripts: Chart.js and shared GlowPath logic -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="js/glowpath-core.js"></script>
@@ -264,6 +305,8 @@
   <script src="js/glowpath-main.js"></script>
   <!-- User account logic -->
   <script src="js/userprofile.js"></script>
+  <!-- Ai Chat -->
+   <script src="glowpath-ai-chat.js"></script>
 </body>
 </html>
 
